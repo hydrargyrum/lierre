@@ -1,7 +1,6 @@
 
 from PyQt5.QtWidgets import QTreeView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-import notmuch
 
 
 def threads_to_model(threads):

@@ -1,9 +1,9 @@
 
 from PyQt5.QtWidgets import (
-    QMainWindow, QVBoxLayout, QLineEdit, QWidget, QApplication,
+    QMainWindow, QWidget, QApplication,
 )
 
-from .threadslist import ThreadsView, threads_to_model
+from .threadslist import threads_to_model
 from .threads_window_ui import Ui_Form
 from .threadview import ThreadWidget
 
@@ -27,7 +27,6 @@ class MainWidget(QWidget, Ui_Form):
     def _openThread(self, qidx):
         app = QApplication.instance()
 
-        mdl = self.threadsView.model()
         tid = qidx.siblingAtColumn(0).data()
         thr = get_thread_by_id(app.db, tid)
 

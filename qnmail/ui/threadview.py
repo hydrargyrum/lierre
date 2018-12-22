@@ -3,7 +3,6 @@ import email
 import email.policy
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import pyqtSignal as Signal
 
 from . import plain_message_ui
