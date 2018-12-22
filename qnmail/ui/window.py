@@ -4,29 +4,30 @@ from PyQt5.QtWidgets import (
 )
 
 from .threadslist import ThreadsView, threads_to_model
+from .threads_window_ui import Ui_Form
+
+
+class MainWidget(QWidget, Ui_Form):
+    def __init__(self, *args, **kwargs):
+        super(MainWidget, self).__init__(*args, **kwargs)
+        self.setupUi(self)
 
 
 class Window(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
 
-        self.setCentralWidget(QWidget())
+        self.setCentralWidget(MainWidget())
 
-        layout = QVBoxLayout()
-        self.centralWidget().setLayout(layout)
-
-        self.searchLine = QLineEdit()
-        self.searchLine.setText('tag:inbox')
-        self.searchLine.returnPressed.connect(self.doSearch)
-        layout.addWidget(self.searchLine)
-
-        self.threads = ThreadsView()
-        layout.addWidget(self.threads)
+        self.centralWidget().searchLine.returnPressed.connect(self.doSearch)
+        self.centralWidget().searchButton.clicked.connect(self.doSearch)
 
     def doSearch(self):
         app = QApplication.instance()
-        q = app.db.create_query(self.searchLine.text())
+
+        query_text = self.centralWidget().searchLine.text()
+        q = app.db.create_query(query_text)
         threads = q.search_threads()
         threads._query = q
-        self.threads.setModel(threads_to_model(threads))
+        self.centralWidget().threadsView.setModel(threads_to_model(threads))
 
