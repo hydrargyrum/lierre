@@ -63,7 +63,14 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QTreeView" name="threadsView"/>
+     <widget class="QTreeView" name="threadsView">
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::ExtendedSelection</enum>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>
