@@ -91,6 +91,9 @@ class ThreadWidget(QScrollArea):
         self.thread = thread
         self.thread_tree = build_thread_tree(thread)
         self.message_list = flatten_depth_first(self.thread_tree)
+
+        self.setWindowTitle(self.tr('Thread: %s') % self.thread.get_subject())
+
         self.buildUi()
 
     def buildUi(self):

@@ -43,6 +43,8 @@ class Window(QMainWindow):
         self.centralWidget().searchLine.returnPressed.connect(self.doSearch)
         self.centralWidget().searchButton.clicked.connect(self.doSearch)
 
+        self.setWindowTitle(self.tr('QNMail'))
+
     def doSearch(self):
         app = QApplication.instance()
 
