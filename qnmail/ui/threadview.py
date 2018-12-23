@@ -52,8 +52,8 @@ class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(message.get_header('Date'))
 
-        with open(message.get_filename()) as fp:
-            self.pymessage = email.message_from_file(fp, policy=email.policy.default)
+        with open(message.get_filename(), 'rb') as fp:
+            self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
 
         self.messageEdit.setPlainText(self.pymessage.get_body('plain').get_content())
 
