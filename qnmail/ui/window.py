@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QApplication,
 )
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
+from PyQt5.QtCore import Qt
 
 from .threadslist import threads_to_model
 from .threads_window_ui import Ui_Form
@@ -52,8 +53,10 @@ class MainWidget(QWidget, Ui_Form):
         tid = qidx.siblingAtColumn(0).data()
         thr = get_thread_by_id(app.db, tid)
 
-        self.t = ThreadWidget(thr)
-        self.t.show()
+        mw = QMainWindow(parent=self)
+        mw.setAttribute(Qt.WA_DeleteOnClose, True)
+        mw.setCentralWidget(ThreadWidget(thr))
+        mw.show()
 
 
 class Window(QMainWindow):

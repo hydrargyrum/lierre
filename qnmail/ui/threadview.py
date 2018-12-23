@@ -1,6 +1,7 @@
 
 import email
 import email.policy
+import gc
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PyQt5.QtCore import pyqtSignal as Signal
@@ -107,7 +108,12 @@ class ThreadWidgetBase(QWidget):
         new.toggle.connect(self._toggleMessage)
 
         self.layout().replaceWidget(qmsg, new)
-        qmsg.setParent(None)
+        qmsg.deleteLater()
+
+    def __del__(self):
+        # WTF: collecting now makes python to free Thread then Threads
+        # omitting it will cause python to free Threads then Thread (segfault!)
+        gc.collect()
 
 
 class ThreadWidget(QScrollArea):
