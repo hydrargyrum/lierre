@@ -83,9 +83,9 @@ class CollapsedMessageWidget(QWidget, collapsed_message_ui.Ui_Form):
     toggle = Signal()
 
 
-class ThreadWidget(QScrollArea):
+class ThreadWidgetBase(QWidget):
     def __init__(self, thread, *args, **kwargs):
-        super(ThreadWidget, self).__init__(*args, **kwargs)
+        super(ThreadWidgetBase, self).__init__(*args, **kwargs)
         self.setLayout(QVBoxLayout())
 
         self.thread = thread
@@ -112,4 +112,11 @@ class ThreadWidget(QScrollArea):
 
         self.layout().replaceWidget(qmsg, new)
         qmsg.setParent(None)
+
+
+class ThreadWidget(QScrollArea):
+    def __init__(self, thread, *args, **kwargs):
+        super(ThreadWidget, self).__init__(*args, **kwargs)
+        self.setWidgetResizable(True)
+        self.setWidget(ThreadWidgetBase(thread))
 
