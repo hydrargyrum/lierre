@@ -35,9 +35,7 @@ def all_tags_to_model(db):
 def get_thread_by_id(db, id):
     q = db.create_query('thread:%s' % id)
     it = q.search_threads()
-    it._query = q
     thr = list(it)[0]
-    thr._parent = it
     return thr
 
 
@@ -78,6 +76,5 @@ class Window(QMainWindow):
         query_text = self.centralWidget().searchLine.text()
         q = app.db.create_query(query_text)
         threads = q.search_threads()
-        threads._query = q
         self.centralWidget().threadsView.setModel(threads_to_model(threads))
 

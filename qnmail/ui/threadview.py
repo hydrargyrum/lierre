@@ -12,18 +12,14 @@ from . import collapsed_message_ui
 def build_thread_tree(thread):
     def _build(msg):
         it = msg.get_replies()
-        it._parent = msg
         for sub in it:
-            sub._parent = it
             ret.setdefault(sub, []).append(sub)
             _build(sub)
 
     ret = {}
 
     it = thread.get_toplevel_messages()
-    it._parent = thread
     for msg in it:
-        msg._parent = it
         ret.setdefault(None, []).append(msg)
         _build(msg)
 

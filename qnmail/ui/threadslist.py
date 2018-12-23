@@ -8,7 +8,6 @@ def threads_to_model(threads):
     mdl.setHorizontalHeaderLabels(['ID', 'Subject'])
 
     for thr in threads:
-        thr._parent = threads
         row = []
         row.append(QStandardItem(thr.get_thread_id()))
         row.append(QStandardItem(thr.get_subject()))
