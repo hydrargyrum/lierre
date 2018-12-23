@@ -13,6 +13,9 @@ def threads_to_model(threads):
         row.append(QStandardItem(thr.get_thread_id()))
         row.append(QStandardItem(thr.get_subject()))
 
+        for item in row:
+            item.setEditable(False)
+
         mdl.appendRow(row)
 
     return mdl
