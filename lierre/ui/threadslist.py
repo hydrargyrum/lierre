@@ -1,9 +1,8 @@
 
-import datetime
-
 from PyQt5.QtWidgets import QTreeView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
+from ..utils.date import short_datetime
 
 def threads_to_model(threads):
     mdl = QStandardItemModel()
@@ -13,10 +12,7 @@ def threads_to_model(threads):
         row = []
         row.append(QStandardItem(thr.get_thread_id()))
         row.append(QStandardItem(thr.get_subject()))
-
-        last_update = thr.get_newest_date()
-        last_update = datetime.datetime.fromtimestamp(last_update)
-        row.append(QStandardItem(last_update.strftime('%c')))
+        row.append(QStandardItem(short_datetime(thr.get_newest_date())))
 
         for item in row:
             item.setEditable(False)
