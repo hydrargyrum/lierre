@@ -2,12 +2,14 @@
 import email
 import email.policy
 import gc
+import html
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PyQt5.QtCore import pyqtSignal as Signal
 
 from . import plain_message_ui
 from . import collapsed_message_ui
+from ..mailutils.parsequote import Parser, Line, Block
 
 
 def build_thread_tree(thread):
@@ -49,10 +51,42 @@ class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(message.get_header('Date'))
 
-        with open(message.get_filename(), 'rb') as fp:
-            self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
+        self._populate_body()
 
-        self.messageEdit.setPlainText(self.pymessage.get_body('plain').get_content())
+    def _populate_body(self):
+        with open(self.message.get_filename(), 'rb') as fp:
+            print(self.message.get_filename())
+            self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
+        body = self.pymessage.get_body('plain').get_content()
+
+        parser = Parser()
+        parsed = parser.parse(body)
+
+        full_html = []
+
+        def _populate_rec(item):
+            if isinstance(item, Line):
+                full_html.append('  ' * item.level)
+                full_html.append(html.escape(item.text))
+                full_html.append('<br/>')
+            else:
+                assert isinstance(item, Block)
+
+                if item.level:
+                    full_html.append('  ' * item.level)
+                    full_html.append('<blockquote>\n')
+
+                for sub in item.content:
+                    _populate_rec(sub)
+
+                if item.level:
+                    full_html.append('  ' * item.level)
+                    full_html.append('</blockquote>\n')
+
+        for item in parsed:
+            _populate_rec(item)
+
+        self.messageEdit.setHtml(''.join(full_html))
 
     def eventFilter(self, obj, ev):
         if ev.type() == ev.MouseButtonPress:
