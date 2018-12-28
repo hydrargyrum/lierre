@@ -71,14 +71,17 @@
     </widget>
    </item>
    <item>
-    <widget class="QTextEdit" name="messageEdit">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="WebView" name="messageEdit"/>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>WebView</class>
+   <extends>QTextEdit</extends>
+   <header>.webview</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
