@@ -4,12 +4,17 @@ import email.policy
 import gc
 import html
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QScrollArea, QTreeView, QSplitter,
+)
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import pyqtSignal as Signal
 
 from . import plain_message_ui
 from . import collapsed_message_ui
 from ..mailutils.parsequote import Parser, Line, Block
+from ..utils.date import short_datetime
+from ..utils.addresses import get_sender
 
 
 def build_thread_tree(thread):
@@ -38,6 +43,28 @@ def flatten_depth_first(tree_dict):
     ret = []
     _build(None)
     return ret
+
+
+def build_thread_tree_model(tree):
+    mdl = QStandardItemModel()
+    mdl.setHorizontalHeaderLabels(['From', 'Date'])
+
+    def _build(parent, qparent):
+        for msg in tree.get(parent, ()):
+            qitems = [
+                QStandardItem(get_sender(msg.get_header('From'))),
+                QStandardItem(short_datetime(msg.get_date())),
+            ]
+
+            for qitem in qitems:
+                qitem.setEditable(False)
+
+            qparent.appendRow(qitems)
+            _build(msg, qitems[0])
+
+    _build(None, mdl.invisibleRootItem())
+
+    return mdl
 
 
 class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
@@ -114,9 +141,9 @@ class CollapsedMessageWidget(QWidget, collapsed_message_ui.Ui_Form):
     toggle = Signal()
 
 
-class ThreadWidgetBase(QWidget):
+class ThreadMessagesBase(QWidget):
     def __init__(self, thread, *args, **kwargs):
-        super(ThreadWidgetBase, self).__init__(*args, **kwargs)
+        super(ThreadMessagesBase, self).__init__(*args, **kwargs)
         self.setLayout(QVBoxLayout())
 
         self.thread = thread
@@ -150,9 +177,24 @@ class ThreadWidgetBase(QWidget):
         gc.collect()
 
 
-class ThreadWidget(QScrollArea):
+class ThreadMessagesWidget(QScrollArea):
+    def __init__(self, thread, *args, **kwargs):
+        super(ThreadMessagesWidget, self).__init__(*args, **kwargs)
+        self.setWidgetResizable(True)
+        self.setWidget(ThreadMessagesBase(thread))
+
+
+class ThreadWidget(QSplitter):
     def __init__(self, thread, *args, **kwargs):
         super(ThreadWidget, self).__init__(*args, **kwargs)
-        self.setWidgetResizable(True)
-        self.setWidget(ThreadWidgetBase(thread))
+
+        qtree = QTreeView()
+        qmessages = ThreadMessagesWidget(thread)
+
+        tree = qmessages.widget().thread_tree
+        tree_mdl = build_thread_tree_model(tree)
+        qtree.setModel(tree_mdl)
+
+        self.addWidget(qtree)
+        self.addWidget(qmessages)
 
