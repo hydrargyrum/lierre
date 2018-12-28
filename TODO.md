@@ -29,3 +29,4 @@
 * scriptability/plugins
 * prefs dialog
 
+* propose default notmuch hooks for auto-tagging all messages in a thread, etc.
