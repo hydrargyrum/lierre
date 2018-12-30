@@ -18,15 +18,27 @@
 * delete message
 * delete thread
 * save/view attachments
+
 * encrypt/sign mails
+* (support autocrypt?)
 
 * saved searches
 * autocomplete tags
 
-* multiple senders
+* multiple identities (senders)
 * save sent mail
 
 * scriptability/plugins
 * prefs dialog
 
 * propose default notmuch hooks for auto-tagging all messages in a thread, etc.
+
+* safe html message view (don't load resources)
+
+* support JSON-LD for quick mail actions
+* look for external address book interaction
+* look for external calendar interaction
+
+* display body excerpt
+
+* try to support imap folders
