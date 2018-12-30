@@ -4,6 +4,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 from ..utils.date import short_datetime
 
+
 def threads_to_model(threads):
     mdl = QStandardItemModel()
     mdl.setHorizontalHeaderLabels(['ID', 'Subject', 'Last update'])
