@@ -1,3 +1,4 @@
+.tox
 *_ui.py
 *.pyc
 *.swp
