@@ -21,13 +21,12 @@ def build_thread_tree(thread):
     def _build(msg):
         it = msg.get_replies()
         for sub in it:
-            ret.setdefault(sub, []).append(sub)
+            ret.setdefault(msg, []).append(sub)
             _build(sub)
 
     ret = {}
 
-    it = thread.get_toplevel_messages()
-    for msg in it:
+    for msg in thread.get_toplevel_messages():
         ret.setdefault(None, []).append(msg)
         _build(msg)
 
