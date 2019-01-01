@@ -9,7 +9,6 @@ class Interceptor(QWebEngineUrlRequestInterceptor):
     def interceptRequest(self, req):
         url = req.requestUrl().toString()
         if not url.startswith('data:'):
-            print(bytes(req.requestMethod()).decode('ascii'), req.requestUrl().toString(), req.navigationType(), req.resourceType())
             req.block(True)
 
 

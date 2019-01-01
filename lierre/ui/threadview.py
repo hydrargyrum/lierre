@@ -82,7 +82,6 @@ class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
 
     def _populate_body(self):
         with open(self.message.get_filename(), 'rb') as fp:
-            print(self.message.get_filename())
             self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
         body = self.pymessage.get_body('plain').get_content()
 
