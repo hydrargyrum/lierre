@@ -2,10 +2,12 @@
 from hashlib import sha1
 
 from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QApplication,
+    QMainWindow, QWidget, QApplication, QTabWidget,
 )
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    pyqtSignal as Signal, pyqtSlot as Slot,
+)
 
 from .threadslist import threads_to_model
 from .threads_window_ui import Ui_Form
@@ -40,44 +42,58 @@ def get_thread_by_id(db, id):
     return thr
 
 
-class MainWidget(QWidget, Ui_Form):
+class ThreadsWidget(QWidget, Ui_Form):
     def __init__(self, *args, **kwargs):
-        super(MainWidget, self).__init__(*args, **kwargs)
+        super(ThreadsWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
         self.threadsView.activated.connect(self._openThread)
 
+        app = QApplication.instance()
+        self.tagsView.setModel(all_tags_to_model(app.db))
+
+        self.searchLine.returnPressed.connect(self.doSearch)
+        self.searchButton.clicked.connect(self.doSearch)
+
     def _openThread(self, qidx):
+        tid = qidx.siblingAtColumn(0).data()
+        self.threadActivated.emit(tid)
+
+    threadActivated = Signal(str)
+
+    def doSearch(self):
         app = QApplication.instance()
 
-        tid = qidx.siblingAtColumn(0).data()
-        thr = get_thread_by_id(app.db, tid)
+        query_text = self.searchLine.text()
+        q = app.db.create_query(query_text)
+        threads = q.search_threads()
+        self.threadsView.setModel(threads_to_model(threads))
 
-        mw = QMainWindow(parent=self)
-        mw.setAttribute(Qt.WA_DeleteOnClose, True)
-        mw.setCentralWidget(ThreadWidget(thr))
-        mw.show()
+
+class TabWidget(QTabWidget):
+    def __init__(self, *args, **kwargs):
+        super(TabWidget, self).__init__(*args, **kwargs)
+        self.setTabsClosable(True)
+
+        self.addThreads()
+
+    def addThreads(self):
+        w = ThreadsWidget()
+        self.addTab(w, 'Default')
+        w.threadActivated.connect(self.addThread)
+
+    @Slot(str)
+    def addThread(self, tid):
+        app = QApplication.instance()
+        thr = get_thread_by_id(app.db, tid)
+        w = ThreadWidget(thr)
+        self.addTab(w, 'Thread')
 
 
 class Window(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
 
-        self.setCentralWidget(MainWidget())
-
-        self.centralWidget().searchLine.returnPressed.connect(self.doSearch)
-        self.centralWidget().searchButton.clicked.connect(self.doSearch)
-
+        self.setCentralWidget(TabWidget())
         self.setWindowTitle(self.tr('QNMail'))
-
-        app = QApplication.instance()
-        self.centralWidget().tagsView.setModel(all_tags_to_model(app.db))
-
-    def doSearch(self):
-        app = QApplication.instance()
-
-        query_text = self.centralWidget().searchLine.text()
-        q = app.db.create_query(query_text)
-        threads = q.search_threads()
-        self.centralWidget().threadsView.setModel(threads_to_model(threads))
 
