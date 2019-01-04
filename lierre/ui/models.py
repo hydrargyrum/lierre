@@ -24,14 +24,13 @@ def build_thread_tree(thread):
 
 
 class BasicModel(QAbstractItemModel):
-    def __init__(self, tree, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(BasicModel, self).__init__(*args, **kwargs)
-        self.tree = tree
-        self.parents = {}
-        for msg in self.tree:
-            for sub in self.tree[msg]:
-                self.parents[sub] = msg
 
+        self.tree = {None: []}
+        self.parents = {}
+
+    # QAbstractItemModel
     def index(self, row, col, parent_qidx):
         parent = parent_qidx.internalPointer()
         children = self.tree.get(parent, ())
@@ -88,6 +87,18 @@ class BasicModel(QAbstractItemModel):
     def fetchMore(self, qidx):
         pass
 
+    # custom
+    def _setTree(self, tree):
+        self.modelAboutToBeReset.emit()
+
+        self.tree = tree
+        self.parents = {}
+        for msg in self.tree:
+            for sub in self.tree[msg]:
+                self.parents[sub] = msg
+
+        self.modelReset.emit()
+
 
 class ThreadMessagesModel(BasicModel):
     MessageIdRole = Qt.UserRole + 1
@@ -99,8 +110,9 @@ class ThreadMessagesModel(BasicModel):
         ('Date', 'date'),
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tree, *args, **kwargs):
         super(ThreadMessagesModel, self).__init__(*args, **kwargs)
+        self._setTree(tree)
         # if building the tree here and it's built somewhere else too -> crash
         # self.tree = build_thread_tree(thread)
 
@@ -128,3 +140,35 @@ class ThreadMessagesModel(BasicModel):
 
         return QVariant()
 
+
+class ThreadListModel(BasicModel):
+    columns = (
+        ('ID', 'id'),
+        ('Subject', 'subject'),
+        ('Last update', 'last_update'),
+    )
+
+    def setQuery(self, query):
+        tree = {None: list(query.search_threads())}
+        self._setTree(tree)
+
+    def _get_id(self, thread):
+        return QVariant(thread.get_thread_id())
+
+    def _get_subject(self, thread):
+        return QVariant(thread.get_subject())
+
+    def _get_last_update(self, thread):
+        return QVariant(short_datetime(thread.get_newest_date()))
+
+    def data(self, qidx, role):
+        item = qidx.internalPointer()
+        if item is None:
+            return QVariant()
+
+        if role == Qt.DisplayRole:
+            name = self.columns[qidx.column()][1]
+            cb = getattr(self, '_get_%s' % name)
+            return cb(item)
+
+        return QVariant()
