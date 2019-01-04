@@ -9,7 +9,7 @@ from PyQt5.QtCore import (
     pyqtSignal as Signal, pyqtSlot as Slot,
 )
 
-from .threadslist import threads_to_model
+from .models import ThreadListModel
 from .threads_window_ui import Ui_Form
 from .threadview import ThreadWidget
 
@@ -52,6 +52,8 @@ class ThreadsWidget(QWidget, Ui_Form):
         app = QApplication.instance()
         self.tagsView.setModel(all_tags_to_model(app.db))
 
+        self.threadsView.setModel(ThreadListModel())
+
         self.searchLine.returnPressed.connect(self.doSearch)
         self.searchButton.clicked.connect(self.doSearch)
 
@@ -66,8 +68,7 @@ class ThreadsWidget(QWidget, Ui_Form):
 
         query_text = self.searchLine.text()
         q = app.db.create_query(query_text)
-        threads = q.search_threads()
-        self.threadsView.setModel(threads_to_model(threads))
+        self.threadsView.model().setQuery(q)
 
 
 class TabWidget(QTabWidget):
