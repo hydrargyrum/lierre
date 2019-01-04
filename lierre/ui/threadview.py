@@ -202,7 +202,7 @@ class ThreadWidget(QSplitter):
         qmessages = ThreadMessagesWidget(thread)
 
         tree = qmessages.widget().thread_tree
-        tree_mdl = ThreadMessagesModel(thread, tree)
+        tree_mdl = ThreadMessagesModel(tree)
         qtree.setModel(tree_mdl)
         qtree.expandAll()
         qtree.setSelectionBehavior(QTreeView.SelectRows)

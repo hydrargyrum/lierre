@@ -23,23 +23,10 @@ def build_thread_tree(thread):
     return ret
 
 
-class ThreadMessagesModel(QAbstractItemModel):
-    MessageIdRole = Qt.UserRole + 1
-    MessageFileRole = Qt.UserRole + 2
-    MessageObjectRole = Qt.UserRole + 3
-
-    columns = (
-        ('Sender', 'sender'),
-        ('Date', 'date'),
-    )
-
-    def __init__(self, thread, tree, *args, **kwargs):
-        super(ThreadMessagesModel, self).__init__(*args, **kwargs)
-        self.thread = thread
+class BasicModel(QAbstractItemModel):
+    def __init__(self, tree, *args, **kwargs):
+        super(BasicModel, self).__init__(*args, **kwargs)
         self.tree = tree
-        # if building the tree here and it's built somewhere else too -> crash
-        # self.tree = build_thread_tree(thread)
-
         self.parents = {}
         for msg in self.tree:
             for sub in self.tree[msg]:
@@ -100,6 +87,22 @@ class ThreadMessagesModel(QAbstractItemModel):
 
     def fetchMore(self, qidx):
         pass
+
+
+class ThreadMessagesModel(BasicModel):
+    MessageIdRole = Qt.UserRole + 1
+    MessageFileRole = Qt.UserRole + 2
+    MessageObjectRole = Qt.UserRole + 3
+
+    columns = (
+        ('Sender', 'sender'),
+        ('Date', 'date'),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(ThreadMessagesModel, self).__init__(*args, **kwargs)
+        # if building the tree here and it's built somewhere else too -> crash
+        # self.tree = build_thread_tree(thread)
 
     def _get_sender(self, msg):
         return QVariant(get_sender(msg.get_header('From')))
