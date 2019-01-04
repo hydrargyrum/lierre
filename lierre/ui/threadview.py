@@ -7,17 +7,17 @@ import html
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QScrollArea, QTreeView, QSplitter,
 )
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, QModelIndex
 
 from . import plain_message_ui
 from . import collapsed_message_ui
+from .models import ThreadMessagesModel
 from ..mailutils.parsequote import Parser, Line, Block
-from ..utils.date import short_datetime
-from ..utils.addresses import get_sender
 
 
 def build_thread_tree(thread):
+    # TODO attach weak tree to thread?
+
     def _build(msg):
         it = msg.get_replies()
         for sub in it:
@@ -42,28 +42,6 @@ def flatten_depth_first(tree_dict):
     ret = []
     _build(None)
     return ret
-
-
-def build_thread_tree_model(tree):
-    mdl = QStandardItemModel()
-    mdl.setHorizontalHeaderLabels(['From', 'Date'])
-
-    def _build(parent, qparent):
-        for msg in tree.get(parent, ()):
-            qitems = [
-                QStandardItem(get_sender(msg.get_header('From'))),
-                QStandardItem(short_datetime(msg.get_date())),
-            ]
-
-            for qitem in qitems:
-                qitem.setEditable(False)
-
-            qparent.appendRow(qitems)
-            _build(msg, qitems[0])
-
-    _build(None, mdl.invisibleRootItem())
-
-    return mdl
 
 
 class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
@@ -144,6 +122,7 @@ class ThreadMessagesBase(QWidget):
         super(ThreadMessagesBase, self).__init__(*args, **kwargs)
         self.setLayout(QVBoxLayout())
 
+        self.widgets = {}
         self.thread = thread
         self.thread_tree = build_thread_tree(thread)
         self.message_list = flatten_depth_first(self.thread_tree)
@@ -157,17 +136,33 @@ class ThreadMessagesBase(QWidget):
             qmsg = CollapsedMessageWidget(msg)
             qmsg.toggle.connect(self._toggleMessage)
             self.layout().addWidget(qmsg)
+            self.widgets[msg.get_message_id()] = qmsg
 
+    @Slot()
     def _toggleMessage(self):
         qmsg = self.sender()
+        self._toggleMessageWidget(qmsg)
+
+    def _toggleMessageWidget(self, qmsg):
+        id = qmsg.message.get_message_id()
         if isinstance(qmsg, PlainMessageWidget):
             new = CollapsedMessageWidget(qmsg.message)
+            new.toggle.connect(self._selectInTree)
         else:
             new = PlainMessageWidget(qmsg.message)
         new.toggle.connect(self._toggleMessage)
+        self.widgets[id] = new
 
         self.layout().replaceWidget(qmsg, new)
         qmsg.deleteLater()
+        return new
+
+    @Slot(str)
+    def showMessage(self, id):
+        qmsg = self.widgets[id]
+        if isinstance(qmsg, CollapsedMessageWidget):
+            self._toggleMessageWidget(qmsg)
+        # TODO scroll into view
 
     def __del__(self):
         # WTF: collecting now makes python to free Thread then Threads
@@ -181,17 +176,39 @@ class ThreadMessagesWidget(QScrollArea):
         self.setWidgetResizable(True)
         self.setWidget(ThreadMessagesBase(thread))
 
+    @Slot(str)
+    def showMessage(self, id):
+        self.widget().showMessage(id)
+
+
+class ThreadMessagesTreeView(QTreeView):
+    def __init__(self, *args, **kwargs):
+        super(ThreadMessagesTreeView, self).__init__(*args, **kwargs)
+        self.activated.connect(self.on_activated)
+
+    @Slot(QModelIndex)
+    def on_activated(self, qidx):
+        id = qidx.data(ThreadMessagesModel.MessageIdRole)
+        self.messageActivated.emit(id)
+
+    messageActivated = Signal(str)
+
 
 class ThreadWidget(QSplitter):
     def __init__(self, thread, *args, **kwargs):
         super(ThreadWidget, self).__init__(*args, **kwargs)
 
-        qtree = QTreeView()
+        qtree = ThreadMessagesTreeView()
         qmessages = ThreadMessagesWidget(thread)
 
         tree = qmessages.widget().thread_tree
-        tree_mdl = build_thread_tree_model(tree)
+        tree_mdl = ThreadMessagesModel(thread, tree)
         qtree.setModel(tree_mdl)
+        qtree.expandAll()
+        qtree.setSelectionBehavior(QTreeView.SelectRows)
+        qtree.setSelectionMode(QTreeView.SingleSelection)
+
+        qtree.messageActivated.connect(qmessages.showMessage)
 
         self.addWidget(qtree)
         self.addWidget(qmessages)
