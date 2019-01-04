@@ -90,7 +90,8 @@ class TabWidget(QTabWidget):
         app = QApplication.instance()
         thr = get_thread_by_id(app.db, tid)
         w = ThreadWidget(thr)
-        self.addTab(w, 'Thread')
+        idx = self.addTab(w, 'Thread')
+        self.setCurrentIndex(idx)
 
     @Slot(int)
     def _closeTabRequested(self, idx):
