@@ -75,6 +75,8 @@ class TabWidget(QTabWidget):
         super(TabWidget, self).__init__(*args, **kwargs)
         self.setTabsClosable(True)
 
+        self.tabCloseRequested.connect(self._closeTabRequested)
+
         self.addThreads()
 
     def addThreads(self):
@@ -88,6 +90,11 @@ class TabWidget(QTabWidget):
         thr = get_thread_by_id(app.db, tid)
         w = ThreadWidget(thr)
         self.addTab(w, 'Thread')
+
+    @Slot(int)
+    def _closeTabRequested(self, idx):
+        if self.count() > 1:
+            self.removeTab(idx)
 
 
 class Window(QMainWindow):
