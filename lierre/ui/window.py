@@ -27,7 +27,7 @@ class TabWidget(QTabWidget):
 
     def addThreads(self):
         w = ThreadsWidget()
-        self.addTab(w, 'Default')
+        self._addTab(w)
         w.threadActivated.connect(self.addThread)
 
     @Slot(str)
@@ -35,13 +35,27 @@ class TabWidget(QTabWidget):
         app = QApplication.instance()
         thr = get_thread_by_id(app.db, tid)
         w = ThreadWidget(thr)
-        idx = self.addTab(w, 'Thread')
+        idx = self._addTab(w)
         self.setCurrentIndex(idx)
+
+    def _addTab(self, widget):
+        idx = self.addTab(widget, widget.windowTitle())
+        widget.windowTitleChanged.connect(self._tabTitleChanged)
+        return idx
 
     @Slot(int)
     def _closeTabRequested(self, idx):
         if self.count() > 1:
             self.removeTab(idx)
+
+    @Slot(str)
+    def _tabTitleChanged(self, title):
+        widget = self.sender()
+        idx = self.indexOf(widget)
+        if idx < 0:
+            return
+
+        self.setTabText(idx, title)
 
 
 class Window(QMainWindow):

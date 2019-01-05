@@ -34,4 +34,5 @@ class ThreadsWidget(QWidget, Ui_Form):
         query_text = self.searchLine.text()
         q = app.db.create_query(query_text)
         self.threadsView.model().setQuery(q)
+        self.setWindowTitle(self.tr('Query: %s') % query_text)
 

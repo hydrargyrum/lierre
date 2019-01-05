@@ -48,3 +48,5 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
         self.messagesView.setThread(thread, tree)
         self.messagesTree.messageActivated.connect(self.messagesView.showMessage)
 
+        self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
+
