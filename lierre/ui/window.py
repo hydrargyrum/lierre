@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QApplication, QTabWidget,
 )
-from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 
 from .threads_widget import ThreadsWidget
 from .thread_widget import ThreadWidget
@@ -56,6 +56,9 @@ class TabWidget(QTabWidget):
             return
 
         self.setTabText(idx, title)
+        self.someTabTitleChanged.emit()
+
+    someTabTitleChanged = Signal()
 
 
 class Window(QMainWindow):
@@ -63,5 +66,12 @@ class Window(QMainWindow):
         super(Window, self).__init__(*args, **kwargs)
 
         self.setCentralWidget(TabWidget())
-        self.setWindowTitle(self.tr('QNMail'))
+        self.setWindowTitle(self.tr('Lierre'))
+
+        self.centralWidget().currentChanged.connect(self._tabChanged)
+        self.centralWidget().someTabTitleChanged.connect(self._tabChanged)
+
+    @Slot()
+    def _tabChanged(self):
+        self.setWindowTitle(self.centralWidget().currentWidget().windowTitle())
 
