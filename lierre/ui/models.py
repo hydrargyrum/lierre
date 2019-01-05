@@ -10,6 +10,16 @@ from ..utils.date import short_datetime
 from ..utils.addresses import get_sender
 
 
+LAST_ROLE = Qt.UserRole
+
+
+def register_role():
+    global LAST_ROLE
+
+    LAST_ROLE += 1
+    return LAST_ROLE
+
+
 def build_thread_tree(thread):
     def _build(msg):
         it = msg.get_replies()
@@ -104,9 +114,9 @@ class BasicModel(QAbstractItemModel):
 
 
 class ThreadMessagesModel(BasicModel):
-    MessageIdRole = Qt.UserRole + 1
-    MessageFileRole = Qt.UserRole + 2
-    MessageObjectRole = Qt.UserRole + 3
+    MessageIdRole = register_role()
+    MessageFileRole = register_role()
+    MessageObjectRole = register_role()
 
     columns = (
         ('Sender', 'sender'),
@@ -197,7 +207,7 @@ class TagsListModel(BasicModel):
 
 
 class ThreadListModel(BasicModel):
-    ThreadIdRole = Qt.UserRole + 1
+    ThreadIdRole = register_role()
 
     columns = (
         ('Authors', 'authors'),
