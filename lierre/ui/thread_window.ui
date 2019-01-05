@@ -50,12 +50,12 @@
   <customwidget>
    <class>MessagesTreeView</class>
    <extends>QTreeView</extends>
-   <header>.views.messagestreeview</header>
+   <header>.messagestreeview</header>
   </customwidget>
   <customwidget>
    <class>MessagesView</class>
    <extends>QWidget</extends>
-   <header>.views.messagesview</header>
+   <header>.messagesview</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
