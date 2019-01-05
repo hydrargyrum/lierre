@@ -46,7 +46,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QTreeView" name="tagsView">
+     <widget class="TagsListView" name="tagsView">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -62,9 +62,6 @@
       <property name="itemsExpandable">
        <bool>false</bool>
       </property>
-      <property name="headerHidden">
-       <bool>true</bool>
-      </property>
      </widget>
      <widget class="QTreeView" name="threadsView">
       <property name="alternatingRowColors">
@@ -78,6 +75,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TagsListView</class>
+   <extends>QTreeView</extends>
+   <header>.tagslistview</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

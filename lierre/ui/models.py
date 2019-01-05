@@ -156,18 +156,28 @@ def tag_to_colors(tag):
 
 
 class TagsListModel(BasicModel):
-    TagMessagesNumberRole = Qt.UserRole + 1
-    TagMessagesUnreadNumberRole = Qt.UserRole + 2
-
     columns = (
-        ('Name', 'Name'),
+        ('Name', 'name'),
+        ('Unread', 'unread_text'),
     )
 
     def __init__(self, db, *args, **kwargs):
         super(TagsListModel, self).__init__(*args, **kwargs)
         self.db = db
-        tree = {None: list(db.get_all_tags())}
+        tree = {
+            None: [
+                (tag, self.db.create_query('tag:%s AND tag:unread' % tag).count_threads())
+                for tag in db.get_all_tags()
+            ],
+        }
         self._setTree(tree)
+
+    def _get_name(self, item):
+        return QVariant(item[0])
+
+    def _get_unread_text(self, item):
+        text = str(item[1]) if item[1] else ''
+        return QVariant(text)
 
     def data(self, qidx, role):
         item = qidx.internalPointer()
@@ -175,15 +185,13 @@ class TagsListModel(BasicModel):
             return QVariant()
 
         if role == Qt.DisplayRole:
-            return QVariant(item)
-        elif role == self.TagMessagesNumberRole:
-            return self.db.create_query('tag:%s' % item).count_messages()
-        elif role == self.TagMessagesUnreadNumberRole:
-            return self.db.create_query('tag:%s AND tag:unread' % item).count_messages()
+            name = self.columns[qidx.column()][1]
+            cb = getattr(self, '_get_%s' % name)
+            return cb(item)
         elif role == Qt.ForegroundRole:
-            return QVariant(tag_to_colors(item)[0])
+            return QVariant(tag_to_colors(item[0])[0])
         elif role == Qt.BackgroundRole:
-            return QVariant(tag_to_colors(item)[1])
+            return QVariant(tag_to_colors(item[0])[1])
 
         return QVariant()
 
