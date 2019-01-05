@@ -1,7 +1,10 @@
 
+from hashlib import sha1
+
 from PyQt5.QtCore import (
     QModelIndex, QVariant, QAbstractItemModel, Qt,
 )
+from PyQt5.QtGui import QBrush, QColor
 
 from ..utils.date import short_datetime
 from ..utils.addresses import get_sender
@@ -137,6 +140,50 @@ class ThreadMessagesModel(BasicModel):
             name = self.columns[qidx.column()][1]
             cb = getattr(self, '_get_%s' % name)
             return cb(item)
+
+        return QVariant()
+
+
+def tag_to_colors(tag):
+    r, g, b = sha1(tag.encode('utf-8')).digest()[:3]
+    bg = QBrush(QColor(r, g, b))
+    if r + g + b < 128 * 3:
+        fg = QBrush(QColor('white'))
+    else:
+        fg = QBrush(QColor('black'))
+
+    return fg, bg
+
+
+class TagsListModel(BasicModel):
+    TagMessagesNumberRole = Qt.UserRole + 1
+    TagMessagesUnreadNumberRole = Qt.UserRole + 2
+
+    columns = (
+        ('Name', 'Name'),
+    )
+
+    def __init__(self, db, *args, **kwargs):
+        super(TagsListModel, self).__init__(*args, **kwargs)
+        self.db = db
+        tree = {None: list(db.get_all_tags())}
+        self._setTree(tree)
+
+    def data(self, qidx, role):
+        item = qidx.internalPointer()
+        if item is None:
+            return QVariant()
+
+        if role == Qt.DisplayRole:
+            return QVariant(item)
+        elif role == self.TagMessagesNumberRole:
+            return self.db.create_query('tag:%s' % item).count_messages()
+        elif role == self.TagMessagesUnreadNumberRole:
+            return self.db.create_query('tag:%s AND tag:unread' % item).count_messages()
+        elif role == Qt.ForegroundRole:
+            return QVariant(tag_to_colors(item)[0])
+        elif role == Qt.BackgroundRole:
+            return QVariant(tag_to_colors(item)[1])
 
         return QVariant()
 

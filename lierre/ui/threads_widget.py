@@ -1,33 +1,10 @@
 
-from hashlib import sha1
 
 from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtCore import pyqtSignal as Signal
 
-from .models import ThreadListModel
+from .models import ThreadListModel, TagsListModel
 from .threads_widget_ui import Ui_Form
-
-
-def all_tags_to_model(db):
-    mdl = QStandardItemModel()
-    mdl.setHorizontalHeaderLabels(['Tag'])
-
-    tags = db.get_all_tags()
-    tags = sorted(tags, key=str.lower)
-    for tag in tags:
-        item = QStandardItem(tag)
-
-        r, g, b = sha1(tag.encode('utf-8')).digest()[:3]
-        item.setBackground(QBrush(QColor(r, g, b)))
-        if r + g + b < 128 * 3:
-            item.setForeground(QBrush(QColor('white')))
-        else:
-            item.setForeground(QBrush(QColor('black')))
-
-        mdl.appendRow(item)
-
-    return mdl
 
 
 class ThreadsWidget(QWidget, Ui_Form):
@@ -38,7 +15,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.threadsView.activated.connect(self._openThread)
 
         app = QApplication.instance()
-        self.tagsView.setModel(all_tags_to_model(app.db))
+        self.tagsView.setModel(TagsListModel(app.db))
 
         self.threadsView.setModel(ThreadListModel())
 
