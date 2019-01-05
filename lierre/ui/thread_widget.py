@@ -1,7 +1,7 @@
 
 from PyQt5.QtWidgets import QWidget
 
-from . import thread_window_ui
+from . import thread_widget_ui
 from .models import ThreadMessagesModel
 
 
@@ -34,7 +34,7 @@ def flatten_depth_first(tree_dict):
     return ret
 
 
-class ThreadWidget(QWidget, thread_window_ui.Ui_Form):
+class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
     def __init__(self, thread, *args, **kwargs):
         super(ThreadWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)

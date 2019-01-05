@@ -11,7 +11,7 @@ from PyQt5.QtCore import (
 
 from .models import ThreadListModel
 from .threads_window_ui import Ui_Form
-from .threadview import ThreadWidget
+from .thread_widget import ThreadWidget
 
 
 def all_tags_to_model(db):
