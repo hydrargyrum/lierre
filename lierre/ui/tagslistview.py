@@ -17,6 +17,7 @@ class TagsListView(QTreeView):
         super(TagsListView, self).__init__(*args, **kwargs)
         self.setItemDelegate(TagDelegate())
         self.activated.connect(self._activatedTag)
+        self.setAcceptDrops(True)
 
     @Slot()
     def _activatedTag(self, qidx):

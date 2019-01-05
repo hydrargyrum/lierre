@@ -1,14 +1,20 @@
 
 from hashlib import sha1
+import json
+import logging
 
 from PyQt5.QtCore import (
-    QModelIndex, QVariant, QAbstractItemModel, Qt,
+    QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData,
 )
 from PyQt5.QtGui import QBrush, QColor
+from PyQt5.QtWidgets import QApplication
 
 from ..utils.date import short_datetime
 from ..utils.addresses import get_sender
+from ..utils.db_ops import iter_thread_messages, get_thread_by_id
 
+
+LOGGER = logging.getLogger(__name__)
 
 LAST_ROLE = Qt.UserRole
 
@@ -182,6 +188,9 @@ class TagsListModel(BasicModel):
         }
         self._setTree(tree)
 
+    def supportedDropActions(self):
+        return Qt.LinkAction
+
     def _get_name(self, item):
         return QVariant(item[0])
 
@@ -204,6 +213,41 @@ class TagsListModel(BasicModel):
             return QVariant(tag_to_colors(item[0])[1])
 
         return QVariant()
+
+    def flags(self, qidx):
+        flags = super(TagsListModel, self).flags(qidx)
+        if flags & Qt.ItemIsEnabled:
+            flags |= Qt.ItemIsDropEnabled
+        return flags
+
+    def mimeTypes(self):
+        return ['text/x-lierre-threads']
+
+    def dropMimeData(self, mime, action, row, column, parent_qidx):
+        data = bytes(mime.data('text/x-lierre-threads')).decode('ascii')
+        if not data:
+            return False
+
+        try:
+            ids = json.loads(data)
+        except ValueError:
+            logging.warning('failed to decode dropped data')
+            return False
+
+        if row == column == -1:
+            qidx = parent_qidx.siblingAtColumn(0)
+        else:
+            qidx = parent_qidx.child(row, 0)
+
+        tag = qidx.data()
+
+        app = QApplication.instance()
+        for id in ids:
+            thread = get_thread_by_id(app.db, id)
+            for message in iter_thread_messages(thread):
+                message.add_tag(tag)
+
+        return True
 
 
 class ThreadListModel(BasicModel):
@@ -245,3 +289,21 @@ class ThreadListModel(BasicModel):
             return item.get_thread_id()
 
         return QVariant()
+
+    def supportedDragActions(self):
+        return Qt.LinkAction
+
+    def flags(self, qidx):
+        flags = super(ThreadListModel, self).flags(qidx)
+        if flags & Qt.ItemIsEnabled:
+            flags |= Qt.ItemIsDragEnabled
+        return flags
+
+    def mimeTypes(self):
+        return ['text/x-lierre-threads']
+
+    def mimeData(self, qidxs):
+        ids = [qidx.data(self.ThreadIdRole) for qidx in qidxs]
+        mime = QMimeData()
+        mime.setData('text/x-lierre-threads', json.dumps(ids).encode('ascii'))
+        return mime

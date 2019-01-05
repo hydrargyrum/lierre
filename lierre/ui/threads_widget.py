@@ -18,6 +18,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.tagsView.setModel(TagsListModel(app.db))
 
         self.threadsView.setModel(ThreadListModel())
+        self.threadsView.setDragEnabled(True)
 
         self.searchLine.returnPressed.connect(self.doSearch)
         self.searchButton.clicked.connect(self.doSearch)
