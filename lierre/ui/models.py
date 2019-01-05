@@ -197,9 +197,12 @@ class TagsListModel(BasicModel):
 
 
 class ThreadListModel(BasicModel):
+    ThreadIdRole = Qt.UserRole + 1
+
     columns = (
-        ('ID', 'id'),
+        ('Authors', 'authors'),
         ('Subject', 'subject'),
+        ('Messages', 'messages_count'),
         ('Last update', 'last_update'),
     )
 
@@ -207,11 +210,14 @@ class ThreadListModel(BasicModel):
         tree = {None: list(query.search_threads())}
         self._setTree(tree)
 
-    def _get_id(self, thread):
-        return QVariant(thread.get_thread_id())
+    def _get_authors(self, thread):
+        return QVariant(thread.get_authors())
 
     def _get_subject(self, thread):
         return QVariant(thread.get_subject())
+
+    def _get_messages_count(self, thread):
+        return QVariant(str(thread.get_total_messages()))
 
     def _get_last_update(self, thread):
         return QVariant(short_datetime(thread.get_newest_date()))
@@ -225,5 +231,7 @@ class ThreadListModel(BasicModel):
             name = self.columns[qidx.column()][1]
             cb = getattr(self, '_get_%s' % name)
             return cb(item)
+        elif role == self.ThreadIdRole:
+            return item.get_thread_id()
 
         return QVariant()

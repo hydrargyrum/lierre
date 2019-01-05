@@ -23,7 +23,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.searchButton.clicked.connect(self.doSearch)
 
     def _openThread(self, qidx):
-        tid = qidx.siblingAtColumn(0).data()
+        tid = qidx.data(ThreadListModel.ThreadIdRole)
         self.threadActivated.emit(tid)
 
     threadActivated = Signal(str)
