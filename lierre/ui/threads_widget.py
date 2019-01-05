@@ -16,6 +16,7 @@ class ThreadsWidget(QWidget, Ui_Form):
 
         app = QApplication.instance()
         self.tagsView.setModel(TagsListModel(app.db))
+        self.tagsView.tagActivated.connect(self.tagActivated)
 
         self.threadsView.setModel(ThreadListModel())
         self.threadsView.setDragEnabled(True)
@@ -28,6 +29,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.threadActivated.emit(tid)
 
     threadActivated = Signal(str)
+    tagActivated = Signal(str)
 
     def doSearch(self):
         app = QApplication.instance()
@@ -36,4 +38,8 @@ class ThreadsWidget(QWidget, Ui_Form):
         q = app.db.create_query(query_text)
         self.threadsView.model().setQuery(q)
         self.setWindowTitle(self.tr('Query: %s') % query_text)
+
+    def setQueryAndSearch(self, text):
+        self.searchLine.setText(text)
+        self.doSearch()
 

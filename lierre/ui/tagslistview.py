@@ -1,7 +1,7 @@
 
 from PyQt5.QtWidgets import QTreeView, QStyledItemDelegate
 from PyQt5.QtCore import (
-    pyqtSlot as Slot, pyqtSignal as Signal,
+    pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex,
 )
 
 
@@ -16,12 +16,13 @@ class TagsListView(QTreeView):
     def __init__(self, *args, **kwargs):
         super(TagsListView, self).__init__(*args, **kwargs)
         self.setItemDelegate(TagDelegate())
-        self.activated.connect(self._activatedTag)
+
+        self.activated.connect(self._tagActivated)
         self.setAcceptDrops(True)
 
-    @Slot()
-    def _activatedTag(self, qidx):
-        qidx = qidx.sibling(qidx.row(), 0)
-        self.activatedTag.emit(qidx.data())
+    @Slot(QModelIndex)
+    def _tagActivated(self, qidx):
+        qidx = qidx.siblingAtColumn(0)
+        self.tagActivated.emit(qidx.data())
 
-    activatedTag = Signal()
+    tagActivated = Signal(str)

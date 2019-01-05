@@ -27,8 +27,15 @@ class TabWidget(QTabWidget):
 
     def addThreads(self):
         w = ThreadsWidget()
-        self._addTab(w)
+        idx = self._addTab(w)
         w.threadActivated.connect(self.addThread)
+        w.tagActivated.connect(self._addThreadsTag)
+        self.setCurrentIndex(idx)
+        return w
+
+    def _addThreadsTag(self, tag):
+        w = self.addThreads()
+        w.setQueryAndSearch('tag:%s' % tag)
 
     @Slot(str)
     def addThread(self, tid):
@@ -37,6 +44,7 @@ class TabWidget(QTabWidget):
         w = ThreadWidget(thr)
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
+        return w
 
     def _addTab(self, widget):
         idx = self.addTab(widget, widget.windowTitle())
