@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import QTreeView, QStyledItemDelegate
+from PyQt5.QtWidgets import QTreeView, QStyledItemDelegate, QHeaderView
 from PyQt5.QtCore import (
     pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex,
 )
@@ -19,6 +19,10 @@ class TagsListView(QTreeView):
 
         self.activated.connect(self._tagActivated)
         self.setAcceptDrops(True)
+
+    def setModel(self, mdl):
+        super(TagsListView, self).setModel(mdl)
+        self.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
 
     @Slot(QModelIndex)
     def _tagActivated(self, qidx):
