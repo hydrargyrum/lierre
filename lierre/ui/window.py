@@ -1,8 +1,9 @@
 
 from PyQt5.QtWidgets import (
-    QMainWindow, QApplication, QTabWidget,
+    QMainWindow, QApplication, QTabWidget, QAction,
 )
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
+from PyQt5.QtGui import QKeySequence
 
 from .threads_widget import ThreadsWidget
 from .thread_widget import ThreadWidget
@@ -22,6 +23,21 @@ class TabWidget(QTabWidget):
         self.setTabsClosable(True)
 
         self.tabCloseRequested.connect(self._closeTabRequested)
+
+        action = QAction(self)
+        action.setShortcuts(QKeySequence.Close)
+        action.triggered.connect(self.closeCurrentTab)
+        self.addAction(action)
+
+        action = QAction(self)
+        action.setShortcuts(QKeySequence('Ctrl+Page Up'))
+        action.triggered.connect(self.moveToPreviousTab)
+        self.addAction(action)
+
+        action = QAction(self)
+        action.setShortcuts(QKeySequence('Ctrl+Page Down'))
+        action.triggered.connect(self.moveToNextTab)
+        self.addAction(action)
 
         self.addThreads()
 
@@ -55,6 +71,21 @@ class TabWidget(QTabWidget):
     def _closeTabRequested(self, idx):
         if self.count() > 1:
             self.removeTab(idx)
+
+    @Slot()
+    def closeCurrentTab(self):
+        if self.count() > 1:
+            self.removeTab(self.currentIndex())
+
+    @Slot()
+    def moveToNextTab(self):
+        idx = (self.currentIndex() + 1) % self.count()
+        self.setCurrentIndex(idx)
+
+    @Slot()
+    def moveToPreviousTab(self):
+        idx = (self.currentIndex() - 1) % self.count()
+        self.setCurrentIndex(idx)
 
     @Slot(str)
     def _tabTitleChanged(self, title):
