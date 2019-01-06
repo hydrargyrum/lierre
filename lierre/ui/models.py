@@ -42,34 +42,46 @@ def build_thread_tree(thread):
     return ret
 
 
-class BasicModel(QAbstractItemModel):
-    def __init__(self, *args, **kwargs):
-        super(BasicModel, self).__init__(*args, **kwargs)
+def flatten_depth_first(tree_dict):
+    def _build(msg):
+        for sub in tree_dict.get(msg, ()):
+            ret.append(sub)
+            _build(sub)
 
+    ret = []
+    _build(None)
+    return ret
+
+
+class BasicTreeModel(QAbstractItemModel):
+    def __init__(self, *args, **kwargs):
+        super(BasicTreeModel, self).__init__(*args, **kwargs)
+
+        self.objs = {}
         self.tree = {None: []}
         self.parents = {}
 
     # QAbstractItemModel
     def index(self, row, col, parent_qidx):
-        parent = parent_qidx.internalPointer()
-        children = self.tree.get(parent, ())
+        oparent = parent_qidx.internalPointer()
+        children = self.tree.get(self._to_key(oparent), ())
         if row >= len(children) or col >= len(self.columns):
             return QModelIndex()
         # column
-        return self.createIndex(row, col, children[row])
+        return self.createIndex(row, col, self.objs[children[row]])
 
     def parent(self, qidx):
         item = qidx.internalPointer()
         if item is None:
             return QModelIndex()
 
-        parent = self.parents[item]
+        parent = self.parents[self._to_key(item)]
         if parent is None:
             return QModelIndex()
 
         gparent = self.parents[parent]
         row = self.tree[gparent].index(parent)
-        return self.createIndex(row, 0, parent)
+        return self.createIndex(row, 0, self.objs[parent])
 
     def flags(self, qidx):
         obj = qidx.internalPointer()
@@ -82,7 +94,7 @@ class BasicModel(QAbstractItemModel):
         if qidx.column() != 0 and qidx.isValid():
             return 0
         item = qidx.internalPointer()
-        return len(self.tree.get(item, ()))
+        return len(self.tree.get(self._to_key(item), ()))
 
     def columnCount(self, qidx):
         if qidx.column() != 0 and qidx.isValid():
@@ -98,7 +110,7 @@ class BasicModel(QAbstractItemModel):
 
     def hasChildren(self, qidx):
         item = qidx.internalPointer()
-        return bool(len(self.tree.get(item, ())))
+        return bool(len(self.tree.get(self._to_key(item), ())))
 
     def canFetchMore(self, qidx):
         return False
@@ -107,9 +119,13 @@ class BasicModel(QAbstractItemModel):
         pass
 
     # custom
-    def _setTree(self, tree):
+    def _to_key(self, obj):
+        return obj['key'] if obj else None
+
+    def _setTree(self, tree, objs):
         self.modelAboutToBeReset.emit()
 
+        self.objs = objs
         self.tree = tree
         self.parents = {}
         for msg in self.tree:
@@ -119,8 +135,86 @@ class BasicModel(QAbstractItemModel):
         self.modelReset.emit()
 
 
-class ThreadMessagesModel(BasicModel):
+class BasicListModel(QAbstractItemModel):
+    def __init__(self, *args, **kwargs):
+        super(BasicListModel, self).__init__(*args, **kwargs)
+
+        self.objs = []
+
+    # QAbstractItemModel
+    def index(self, row, col, parent_qidx):
+        parent = parent_qidx.internalPointer()
+        if parent:
+            return QModelIndex()
+
+        if row >= len(self.objs) or col >= len(self.columns):
+            return QModelIndex()
+        # column
+        return self.createIndex(row, col, self.objs[row])
+
+    def parent(self, qidx):
+        return QModelIndex()
+
+        item = qidx.internalPointer()
+        if item is None:
+            return QModelIndex()
+
+        parent = self.parents[self._to_key(item)]
+        if parent is None:
+            return QModelIndex()
+
+        gparent = self.parents[parent]
+        row = self.tree[gparent].index(parent)
+        return self.createIndex(row, 0, self.objs[parent])
+
+    def flags(self, qidx):
+        obj = qidx.internalPointer()
+        if obj is None:
+            return Qt.NoItemFlags
+        else:
+            return Qt.ItemIsSelectable | Qt.ItemIsEnabled
+
+    def rowCount(self, qidx):
+        if qidx.column() != 0 and qidx.isValid():
+            return 0
+        item = qidx.internalPointer()
+        if item:
+            return 0
+        else:
+            return len(self.objs)
+
+    def columnCount(self, qidx):
+        if qidx.column() != 0 and qidx.isValid():
+            return 0
+        return len(self.columns)
+
+    def headerData(self, section, orientation, role):
+        if role != Qt.DisplayRole:
+            return QVariant()
+        elif section >= len(self.columns):
+            return QVariant()
+        return self.columns[section][0]
+
+    def hasChildren(self, qidx):
+        item = qidx.internalPointer()
+        return not item
+
+    def canFetchMore(self, qidx):
+        return False
+
+    def fetchMore(self, qidx):
+        pass
+
+    # custom
+    def _setObjs(self, objs):
+        self.modelAboutToBeReset.emit()
+        self.objs = objs
+        self.modelReset.emit()
+
+
+class ThreadMessagesModel(BasicTreeModel):
     MessageIdRole = register_role()
+    MessageFilenameRole = register_role()
     MessageFileRole = register_role()
     MessageObjectRole = register_role()
 
@@ -131,15 +225,28 @@ class ThreadMessagesModel(BasicModel):
 
     def __init__(self, tree, *args, **kwargs):
         super(ThreadMessagesModel, self).__init__(*args, **kwargs)
-        self._setTree(tree)
+
+        objs = {
+            obj.get_filename(): self._dict_from_obj(obj)
+            for obj in flatten_depth_first(tree)
+        }
+
+        tree = {
+            msg.get_filename() if msg else None: [sub.get_filename() for sub in tree[msg]]
+            for msg in tree
+        }
+
+        self._setTree(tree, objs)
         # if building the tree here and it's built somewhere else too -> crash
         # self.tree = build_thread_tree(thread)
 
-    def _get_sender(self, msg):
-        return QVariant(get_sender(msg.get_header('From')))
-
-    def _get_date(self, msg):
-        return QVariant(short_datetime(msg.get_date()))
+    def _dict_from_obj(self, msg):
+        return {
+            'key': msg.get_filename(),
+            'id': msg.get_message_id(),
+            'sender': msg.get_header('From'),
+            'date': msg.get_date(),
+        }
 
     def data(self, qidx, role):
         item = qidx.internalPointer()
@@ -147,15 +254,20 @@ class ThreadMessagesModel(BasicModel):
             return QVariant()
 
         if role == self.MessageIdRole:
-            return QVariant(item.get_message_id())
-        elif role == self.MessageFileRole:
-            return QVariant(item.get_filename())
+            return QVariant(item['id'])
+        elif role == self.MessageFilenameRole:
+            return QVariant(item['key'])
         elif role == self.MessageObjectRole:
+            raise NotImplementedError()
             return QVariant(item)
         elif role == Qt.DisplayRole:
             name = self.columns[qidx.column()][1]
-            cb = getattr(self, '_get_%s' % name)
-            return cb(item)
+            data = item[name]
+            if name == 'sender':
+                data = get_sender(data)
+            elif name == 'date':
+                data = short_datetime(data)
+            return QVariant(data)
 
         return QVariant()
 
@@ -171,7 +283,7 @@ def tag_to_colors(tag):
     return fg, bg
 
 
-class TagsListModel(BasicModel):
+class TagsListModel(BasicListModel):
     columns = (
         ('Name', 'name'),
         ('Unread', 'unread_text'),
@@ -179,23 +291,23 @@ class TagsListModel(BasicModel):
 
     def __init__(self, db, *args, **kwargs):
         super(TagsListModel, self).__init__(*args, **kwargs)
-        self.db = db
-        tree = {
-            None: [
-                (tag, self.db.create_query('tag:%s AND tag:unread' % tag).count_threads())
-                for tag in db.get_all_tags()
-            ],
-        }
-        self._setTree(tree)
+        objs = [
+            {
+                'name': tag,
+                'unread': db.create_query('tag:%s AND tag:unread' % tag).count_threads(),
+            }
+            for tag in db.get_all_tags()
+        ]
+        self._setObjs(objs)
 
     def supportedDropActions(self):
         return Qt.LinkAction
 
     def _get_name(self, item):
-        return QVariant(item[0])
+        return QVariant(item['name'])
 
     def _get_unread_text(self, item):
-        text = str(item[1]) if item[1] else ''
+        text = str(item['unread']) if item['unread'] else ''
         return QVariant(text)
 
     def data(self, qidx, role):
@@ -208,9 +320,9 @@ class TagsListModel(BasicModel):
             cb = getattr(self, '_get_%s' % name)
             return cb(item)
         elif role == Qt.ForegroundRole:
-            return QVariant(tag_to_colors(item[0])[0])
+            return QVariant(tag_to_colors(item['name'])[0])
         elif role == Qt.BackgroundRole:
-            return QVariant(tag_to_colors(item[0])[1])
+            return QVariant(tag_to_colors(item['name'])[1])
 
         return QVariant()
 
@@ -250,7 +362,7 @@ class TagsListModel(BasicModel):
         return True
 
 
-class ThreadListModel(BasicModel):
+class ThreadListModel(BasicListModel):
     ThreadIdRole = register_role()
 
     columns = (
@@ -261,20 +373,23 @@ class ThreadListModel(BasicModel):
     )
 
     def setQuery(self, query):
-        tree = {None: list(query.search_threads())}
-        self._setTree(tree)
+        objs = [self._thread_to_dict(thread) for thread in query.search_threads()]
+        self._setObjs(objs)
 
-    def _get_authors(self, thread):
-        return QVariant(thread.get_authors())
-
-    def _get_subject(self, thread):
-        return QVariant(thread.get_subject())
+    def _thread_to_dict(self, thread):
+        return {
+            'id': thread.get_thread_id(),
+            'authors': thread.get_authors(),
+            'subject': thread.get_subject(),
+            'messages_count': thread.get_total_messages(),
+            'last_update': thread.get_newest_date(),
+        }
 
     def _get_messages_count(self, thread):
-        return QVariant(str(thread.get_total_messages()))
+        return QVariant(str(()))
 
     def _get_last_update(self, thread):
-        return QVariant(short_datetime(thread.get_newest_date()))
+        return QVariant(short_datetime(()))
 
     def data(self, qidx, role):
         item = qidx.internalPointer()
@@ -283,10 +398,14 @@ class ThreadListModel(BasicModel):
 
         if role == Qt.DisplayRole:
             name = self.columns[qidx.column()][1]
-            cb = getattr(self, '_get_%s' % name)
-            return cb(item)
+            data = item[name]
+            if name == 'last_update':
+                data = short_datetime(data)
+            elif name == 'messages_count':
+                data = str(data)
+            return QVariant(data)
         elif role == self.ThreadIdRole:
-            return item.get_thread_id()
+            return item['id']
 
         return QVariant()
 

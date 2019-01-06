@@ -15,8 +15,8 @@ class MessagesTreeView(QTreeView):
 
     @Slot(QModelIndex)
     def on_activated(self, qidx):
-        id = qidx.data(ThreadMessagesModel.MessageIdRole)
-        self.messageActivated.emit(id)
+        filename = qidx.data(ThreadMessagesModel.MessageFilenameRole)
+        self.messageActivated.emit(filename)
 
     messageActivated = Signal(str)
 
