@@ -1,4 +1,5 @@
 
+from PyQt5.QtCore import QSizeF, pyqtSlot as Slot
 from PyQt5.QtWebEngineCore import (
     QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo,
 )
@@ -34,9 +35,17 @@ class WebView(QWebEngineView):
         self.profile.setRequestInterceptor(self.interceptor)
 
         self.setPage(QWebEnginePage(self.profile, self))
+        self.page().contentsSizeChanged.connect(self._pageSizeChanged)
 
         self._restrict()
 
     def _restrict(self):
         self.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, False)
+
+    @Slot(QSizeF)
+    def _pageSizeChanged(self, size):
+        self.updateGeometry()
+
+    def minimumSizeHint(self):
+        return self.page().contentsSize().toSize()
 

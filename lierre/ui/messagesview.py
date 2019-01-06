@@ -114,6 +114,7 @@ class MessagesView(QWidget):
             qmsg.toggle.connect(self._toggleMessage)
             self.layout().addWidget(qmsg)
             self.widgets[msg.get_filename()] = qmsg
+        self.layout().addStretch()
 
     @Slot()
     def _toggleMessage(self):
