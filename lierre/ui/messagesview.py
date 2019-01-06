@@ -127,7 +127,7 @@ class MessagesView(QWidget):
         id = qmsg.message.get_message_id()
         if isinstance(qmsg, PlainMessageWidget):
             new = CollapsedMessageWidget(qmsg.message)
-            new.toggle.connect(self._selectInTree)
+            # new.toggle.connect(self._selectInTree)
         else:
             new = PlainMessageWidget(qmsg.message)
         new.toggle.connect(self._toggleMessage)
