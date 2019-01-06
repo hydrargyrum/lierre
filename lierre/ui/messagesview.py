@@ -4,7 +4,7 @@ import email.policy
 import gc
 import html
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
@@ -22,7 +22,7 @@ def flatten_depth_first(tree_dict):
     return ret
 
 
-class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
+class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
     def __init__(self, message, *args, **kwargs):
         super(PlainMessageWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
@@ -79,7 +79,7 @@ class PlainMessageWidget(QWidget, plain_message_ui.Ui_Form):
     toggle = Signal()
 
 
-class CollapsedMessageWidget(QWidget, collapsed_message_ui.Ui_Form):
+class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
     def __init__(self, message, *args, **kwargs):
         super(CollapsedMessageWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
