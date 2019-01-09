@@ -131,6 +131,7 @@ class MessagesView(QWidget):
         else:
             new = PlainMessageWidget(message)
         new.toggle.connect(self._toggleMessage)
+        new.setLineWidth(qmsg.lineWidth())
         self.widgets[message.get_filename()] = new
 
         self.layout().replaceWidget(qmsg, new)
@@ -143,4 +144,14 @@ class MessagesView(QWidget):
         if isinstance(qmsg, CollapsedMessageWidget):
             self._toggleMessageWidget(qmsg)
         # TODO scroll into view
+
+    @Slot(list, list)
+    def selectMessage(self, added, removed):
+        def changeWidth(l, width):
+            for filename in l:
+                qmsg = self.widgets[filename]
+                qmsg.setLineWidth(width)
+
+        changeWidth(removed, 1)
+        changeWidth(added, 2)
 
