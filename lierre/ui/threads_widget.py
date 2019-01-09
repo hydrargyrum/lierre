@@ -1,7 +1,7 @@
 
 
 from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 
 from .models import ThreadListModel, TagsListModel
 from .threads_widget_ui import Ui_Form
@@ -31,6 +31,7 @@ class ThreadsWidget(QWidget, Ui_Form):
     threadActivated = Signal(str)
     tagActivated = Signal(str)
 
+    @Slot()
     def doSearch(self):
         app = QApplication.instance()
 
