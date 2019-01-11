@@ -4,14 +4,14 @@ import json
 import logging
 
 from PyQt5.QtCore import (
-    QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData,
+    QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData, pyqtSlot as Slot,
 )
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QApplication
 
 from ..utils.date import short_datetime
 from ..utils.addresses import get_sender
-from ..utils.db_ops import iter_thread_messages, get_thread_by_id
+from ..utils.db_ops import iter_thread_messages, get_thread_by_id, EXCERPT_BUILDER
 
 
 LOGGER = logging.getLogger(__name__)
@@ -221,10 +221,13 @@ class ThreadMessagesModel(BasicTreeModel):
     columns = (
         ('Sender', 'sender'),
         ('Date', 'date'),
+        ('Excerpt', 'excerpt'),
     )
 
     def __init__(self, tree, *args, **kwargs):
         super(ThreadMessagesModel, self).__init__(*args, **kwargs)
+
+        EXCERPT_BUILDER.builtExcerpt.connect(self._builtExcerpt)
 
         objs = {
             obj.get_filename(): self._dict_from_obj(obj)
@@ -241,11 +244,14 @@ class ThreadMessagesModel(BasicTreeModel):
         # self.tree = build_thread_tree(thread)
 
     def _dict_from_obj(self, msg):
+        excerpt = EXCERPT_BUILDER.getOrBuild(msg.get_filename())
+
         return {
             'key': msg.get_filename(),
             'id': msg.get_message_id(),
             'sender': msg.get_header('From'),
             'date': msg.get_date(),
+            'excerpt': excerpt,
         }
 
     def data(self, qidx, role):
@@ -270,6 +276,14 @@ class ThreadMessagesModel(BasicTreeModel):
             return QVariant(data)
 
         return QVariant()
+
+    @Slot(str)
+    def _builtExcerpt(self, filename):
+        parent = self.parents[filename]
+        row = self.tree[parent].index(filename)
+
+        qidx = self.createIndex(row, 2, self.objs[filename])
+        self.dataChanged.emit(qidx, qidx)
 
 
 def tag_to_colors(tag):

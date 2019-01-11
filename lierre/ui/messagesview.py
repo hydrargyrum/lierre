@@ -8,6 +8,7 @@ from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
+from lierre.utils.db_ops import EXCERPT_BUILDER
 
 
 def flatten_depth_first(tree_dict):
@@ -83,15 +84,23 @@ class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
         super(CollapsedMessageWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
+        EXCERPT_BUILDER.builtExcerpt.connect(self._builtExcerpt)
+
         self.message_filename = message.get_filename()
         self.fromLabel.setText(message.get_header('From'))
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(message.get_header('Date'))
+        self.excerptLabel.setText(EXCERPT_BUILDER.getOrBuild(message.get_filename()) or '')
 
     def mousePressEvent(self, ev):
         self.toggle.emit()
 
     toggle = Signal()
+
+    @Slot(str, str)
+    def _builtExcerpt(self, filename, text):
+        if filename == self.message_filename:
+            self.excerptLabel.setText(text)
 
 
 class MessagesView(QWidget):
