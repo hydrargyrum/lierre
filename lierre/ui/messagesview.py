@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QFrame, QApplication, QMenu,
 )
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
