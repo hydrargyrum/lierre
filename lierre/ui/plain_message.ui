@@ -103,6 +103,16 @@
           </property>
          </spacer>
         </item>
+        <item>
+         <widget class="QToolButton" name="attachmentsButton">
+          <property name="icon">
+           <iconset theme="mail-attachment"/>
+          </property>
+          <property name="popupMode">
+           <enum>QToolButton::InstantPopup</enum>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>

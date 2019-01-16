@@ -3,8 +3,9 @@ import email
 import email.policy
 import html
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QApplication
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QFrame, QApplication, QMenu,
+)
 from PyQt5.QtGui import QIcon
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
@@ -35,6 +36,7 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         self.dateLabel.setText(message.get_header('Date'))
 
         self._populate_body()
+        self._populate_attachments()
 
     def _populate_body(self):
         with open(self.message_filename, 'rb') as fp:
@@ -69,6 +71,17 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
             _populate_rec(item)
 
         self.messageEdit.setHtml(''.join(full_html))
+
+    def _populate_attachments(self):
+        has_attach = False
+
+        self.attachmentsButton.setMenu(QMenu(self.attachmentsButton))
+        for n, attachment in enumerate(self.pymessage.iter_attachments()):
+            has_attach = True
+            action = self.attachmentsButton.menu().addAction(attachment.get_filename())
+            action.setData(n)
+
+        self.attachmentsButton.setVisible(has_attach)
 
     def eventFilter(self, obj, ev):
         if ev.type() == ev.MouseButtonPress:
