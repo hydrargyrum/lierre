@@ -5,6 +5,7 @@ import html
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QApplication
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtGui import QIcon
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
@@ -91,6 +92,12 @@ class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(message.get_header('Date'))
         self.excerptLabel.setText(EXCERPT_BUILDER.getOrBuild(message.get_filename()) or '')
+
+        tags = set(message.get_tags())
+        if 'unread' in tags:
+            self.unreadLabel.setPixmap(QIcon.fromTheme('mail-unread').pixmap(16, 16))
+        if 'attachment' in tags:
+            self.attachmentLabel.setPixmap(QIcon.fromTheme('mail-attachment').pixmap(16, 16))
 
     def mousePressEvent(self, ev):
         self.toggle.emit()
