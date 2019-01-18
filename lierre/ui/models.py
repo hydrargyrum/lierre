@@ -7,11 +7,12 @@ from PyQt5.QtCore import (
     QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData, pyqtSlot as Slot,
 )
 from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import QApplication
 
 from ..utils.date import short_datetime
 from ..utils.addresses import get_sender
-from ..utils.db_ops import iter_thread_messages, get_thread_by_id, EXCERPT_BUILDER
+from ..utils.db_ops import (
+    iter_thread_messages, get_thread_by_id, EXCERPT_BUILDER, open_db_rw,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -367,11 +368,11 @@ class TagsListModel(BasicListModel):
 
         tag = qidx.data()
 
-        app = QApplication.instance()
-        for id in ids:
-            thread = get_thread_by_id(app.db, id)
-            for message in iter_thread_messages(thread):
-                message.add_tag(tag)
+        with open_db_rw() as db:
+            for id in ids:
+                thread = get_thread_by_id(db, id)
+                for message in iter_thread_messages(thread):
+                    message.add_tag(tag)
 
         return True
 

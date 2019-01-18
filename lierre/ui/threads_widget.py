@@ -1,7 +1,8 @@
 
 
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
+from lierre.utils.db_ops import open_db
 
 from .models import ThreadListModel, TagsListModel
 from .threads_widget_ui import Ui_Form
@@ -14,8 +15,8 @@ class ThreadsWidget(QWidget, Ui_Form):
 
         self.threadsView.activated.connect(self._openThread)
 
-        app = QApplication.instance()
-        self.tagsView.setModel(TagsListModel(app.db))
+        with open_db() as db:
+            self.tagsView.setModel(TagsListModel(db))
         self.tagsView.tagActivated.connect(self.tagActivated)
 
         self.threadsView.setModel(ThreadListModel())
@@ -33,11 +34,10 @@ class ThreadsWidget(QWidget, Ui_Form):
 
     @Slot()
     def doSearch(self):
-        app = QApplication.instance()
-
         query_text = self.searchLine.text()
-        q = app.db.create_query(query_text)
-        self.threadsView.model().setQuery(q)
+        with open_db() as db:
+            q = db.create_query(query_text)
+            self.threadsView.model().setQuery(q)
         self.setWindowTitle(self.tr('Query: %s') % query_text)
 
     def setQueryAndSearch(self, text):

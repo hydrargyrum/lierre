@@ -4,14 +4,14 @@ import email.policy
 import html
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFrame, QApplication, QMenu,
+    QWidget, QVBoxLayout, QFrame, QMenu,
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
-from lierre.utils.db_ops import EXCERPT_BUILDER
+from lierre.utils.db_ops import EXCERPT_BUILDER, open_db
 
 
 def flatten_depth_first(tree_dict):
@@ -152,10 +152,13 @@ class MessagesView(QWidget):
         self._toggleMessageWidget(qmsg)
 
     def _toggleMessageWidget(self, qmsg):
-        app = QApplication.instance()
-        message = app.db.find_message_by_filename(qmsg.message_filename)
+        db = open_db()
 
-        if isinstance(qmsg, PlainMessageWidget):
+        message = db.find_message_by_filename(qmsg.message_filename)
+
+        collapsed = isinstance(qmsg, PlainMessageWidget)
+
+        if collapsed:
             new = CollapsedMessageWidget(message)
             # new.toggle.connect(self._selectInTree)
         else:

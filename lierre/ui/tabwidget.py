@@ -1,12 +1,13 @@
 
 from PyQt5.QtWidgets import (
-    QApplication, QTabWidget, QAction,
+    QTabWidget, QAction,
 )
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtGui import QKeySequence
 
 from .threads_widget import ThreadsWidget
 from .thread_widget import ThreadWidget
+from lierre.utils.db_ops import open_db
 
 
 def get_thread_by_id(db, id):
@@ -55,9 +56,10 @@ class TabWidget(QTabWidget):
 
     @Slot(str)
     def addThread(self, tid):
-        app = QApplication.instance()
-        thr = get_thread_by_id(app.db, tid)
-        w = ThreadWidget(thr)
+        with open_db() as db:
+            thr = get_thread_by_id(db, tid)
+            w = ThreadWidget(thr)
+
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
         return w

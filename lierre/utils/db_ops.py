@@ -4,7 +4,8 @@ import email
 import email.policy
 import re
 
-from PyQt5.QtWidgets import QApplication
+import notmuch
+
 from PyQt5.QtCore import (
     QObject, QBasicTimer, pyqtSignal as Signal
 )
@@ -27,6 +28,14 @@ def iter_thread_messages(thread):
         yield from _iter(msg)
 
 
+def open_db():
+    return notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+
+
+def open_db_rw():
+    return notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
+
+
 class ExcerptBuilder(QObject):
     PROPERTY = 'x-lierre-excerpt'
 
@@ -36,11 +45,11 @@ class ExcerptBuilder(QObject):
         self.timer = QBasicTimer()
 
     def getOrBuild(self, filename):
-        app = QApplication.instance()
-        message = app.db.find_message_by_filename(filename)
-        value = message.get_property(self.PROPERTY)
-        if value is not None:
-            return value
+        with open_db() as db:
+            message = db.find_message_by_filename(filename)
+            value = message.get_property(self.PROPERTY)
+            if value is not None:
+                return value
 
         self._queueMail(filename)
 
@@ -66,10 +75,10 @@ class ExcerptBuilder(QObject):
         text = re.sub(r'^>.*$', '', text, flags=re.MULTILINE)
         text = re.sub(r'\s+', ' ', text)[:100]
 
-        app = QApplication.instance()
-        message = app.db.find_message_by_filename(filename)
-        message.add_property(self.PROPERTY, text)
-        self.builtExcerpt.emit(filename, text)
+        with open_db_rw() as db:
+            message = db.find_message_by_filename(filename)
+            message.add_property(self.PROPERTY, text)
+            self.builtExcerpt.emit(filename, text)
 
     builtExcerpt = Signal(str, str)
 
