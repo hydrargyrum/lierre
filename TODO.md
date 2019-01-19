@@ -2,9 +2,6 @@
 # threads list
 
 * thread sorting in threads list
-* collapse quoting in message view
-
-* drag/drop to add tags
 
 * customize tag color
 
@@ -13,8 +10,13 @@
 
 * try to support maildir folders?
     * allow moving
+    * auto move a thread in the same folder?
+
+* display tags of a thread in threads list
 
 # mail view
+
+* collapse quoting in message view
 
 * save/view attachments
 * xdg thumbnail for attachments?
@@ -23,17 +25,19 @@
     * display cleaned html (security!)
     * safe html message view (don't load resources)
 
-* display body excerpt when collapsed
-    * store in message properties?
+* display tags of a message
+* add/remove tag to/from a message
 
 # sync
 
 * execute notmuch
     * refresh views
-    * beware of errors when notmuch db is updated
 
 * execute muchsync
 * execute fetchmail
+
+* use plugins for supporting different mail fetchers?
+    * pkg_resources?
 
 # composing mail
 
@@ -50,6 +54,7 @@
 * delete thread
 
 * add/remove tags
+* easy access to "star" tagging
 
 # encryption
 
@@ -72,4 +77,8 @@
 * support JSON-LD for quick mail actions
 * look for external address book interaction
 * look for external calendar interaction
+
+# spam control
+
+* mark spam/ham
 
