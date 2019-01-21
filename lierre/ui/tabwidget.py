@@ -43,7 +43,7 @@ class TabWidget(QTabWidget):
         self.addThreads()
 
     def addThreads(self):
-        w = ThreadsWidget()
+        w = ThreadsWidget(parent=self)
         idx = self._addTab(w)
         w.threadActivated.connect(self.addThread)
         w.tagActivated.connect(self._addThreadsTag)
@@ -58,7 +58,7 @@ class TabWidget(QTabWidget):
     def addThread(self, tid):
         with open_db() as db:
             thr = get_thread_by_id(db, tid)
-            w = ThreadWidget(thr)
+            w = ThreadWidget(thr, parent=self)
 
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
