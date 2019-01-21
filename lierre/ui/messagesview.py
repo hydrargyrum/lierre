@@ -101,11 +101,11 @@ class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
 
         EXCERPT_BUILDER.builtExcerpt.connect(self._builtExcerpt)
 
-        self.message_filename = message.get_filename()
+        self.message_id = message.get_message_id()
         self.fromLabel.setText(message.get_header('From'))
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(message.get_header('Date'))
-        self.excerptLabel.setText(EXCERPT_BUILDER.getOrBuild(message.get_filename()) or '')
+        self.excerptLabel.setText(EXCERPT_BUILDER.getOrBuild(message.get_message_id()) or '')
 
         tags = set(message.get_tags())
         if 'unread' in tags:
@@ -119,8 +119,8 @@ class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
     toggle = Signal()
 
     @Slot(str, str)
-    def _builtExcerpt(self, filename, text):
-        if filename == self.message_filename:
+    def _builtExcerpt(self, message_id, text):
+        if message_id == self.message_id:
             self.excerptLabel.setText(text)
 
 
@@ -143,7 +143,7 @@ class MessagesView(QWidget):
             qmsg = CollapsedMessageWidget(msg)
             qmsg.toggle.connect(self._toggleMessage)
             self.layout().addWidget(qmsg)
-            self.widgets[msg.get_filename()] = qmsg
+            self.widgets[msg.get_message_id()] = qmsg
         self.layout().addStretch()
 
     @Slot()
@@ -154,7 +154,7 @@ class MessagesView(QWidget):
     def _toggleMessageWidget(self, qmsg):
         db = open_db()
 
-        message = db.find_message_by_filename(qmsg.message_filename)
+        message = db.find_message(qmsg.message_id)
 
         collapsed = isinstance(qmsg, PlainMessageWidget)
 
@@ -165,15 +165,15 @@ class MessagesView(QWidget):
             new = PlainMessageWidget(message)
         new.toggle.connect(self._toggleMessage)
         new.setLineWidth(qmsg.lineWidth())
-        self.widgets[message.get_filename()] = new
+        self.widgets[message.get_message_id()] = new
 
         self.layout().replaceWidget(qmsg, new)
         qmsg.deleteLater()
         return new
 
     @Slot(str)
-    def showMessage(self, filename):
-        qmsg = self.widgets[filename]
+    def showMessage(self, message_id):
+        qmsg = self.widgets[message_id]
         if isinstance(qmsg, CollapsedMessageWidget):
             self._toggleMessageWidget(qmsg)
         # TODO scroll into view
@@ -181,8 +181,8 @@ class MessagesView(QWidget):
     @Slot(list, list)
     def selectMessage(self, added, removed):
         def changeWidth(l, width):
-            for filename in l:
-                qmsg = self.widgets[filename]
+            for message_id in l:
+                qmsg = self.widgets[message_id]
                 qmsg.setLineWidth(width)
 
         changeWidth(removed, 1)

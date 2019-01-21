@@ -44,17 +44,18 @@ class ExcerptBuilder(QObject):
         self.queue = deque()
         self.timer = QBasicTimer()
 
-    def getOrBuild(self, filename):
+    def getOrBuild(self, message_id):
         with open_db() as db:
-            message = db.find_message_by_filename(filename)
+            message = db.find_message(message_id)
+            filename = message.get_filename()
             value = message.get_property(self.PROPERTY)
             if value is not None:
                 return value
 
-        self._queueMail(filename)
+        self._queueMail((message_id, filename))
 
-    def _queueMail(self, filename):
-        self.queue.append(filename)
+    def _queueMail(self, item):
+        self.queue.append(item)
         if not self.timer.isActive():
             self.timer.start(0, self)
 
@@ -63,7 +64,7 @@ class ExcerptBuilder(QObject):
             super(ExcerptBuilder, self).timerEvent(ev)
             return
 
-        filename = self.queue.popleft()
+        message_id, filename = self.queue.popleft()
 
         if not self.queue:
             self.timer.stop()
@@ -76,9 +77,9 @@ class ExcerptBuilder(QObject):
         text = re.sub(r'\s+', ' ', text)[:100]
 
         with open_db_rw() as db:
-            message = db.find_message_by_filename(filename)
+            message = db.find_message(message_id)
             message.add_property(self.PROPERTY, text)
-            self.builtExcerpt.emit(filename, text)
+            self.builtExcerpt.emit(message_id, text)
 
     builtExcerpt = Signal(str, str)
 

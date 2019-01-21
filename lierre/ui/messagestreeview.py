@@ -21,13 +21,13 @@ class MessagesTreeView(QTreeView):
 
     @Slot(QModelIndex)
     def on_activated(self, qidx):
-        filename = qidx.data(ThreadMessagesModel.MessageFilenameRole)
-        self.messageActivated.emit(filename)
+        msg_id = qidx.data(ThreadMessagesModel.MessageIdRole)
+        self.messageActivated.emit(msg_id)
 
     @Slot(QItemSelection, QItemSelection)
     def on_selection(self, added, removed):
         def names(l):
-            return [qidx.data(ThreadMessagesModel.MessageFilenameRole) for qidx in l]
+            return [qidx.data(ThreadMessagesModel.MessageIdRole) for qidx in l]
 
         self.messagesSelected.emit(names(added.indexes()), names(removed.indexes()))
 

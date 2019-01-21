@@ -231,12 +231,12 @@ class ThreadMessagesModel(BasicTreeModel):
         EXCERPT_BUILDER.builtExcerpt.connect(self._builtExcerpt)
 
         objs = {
-            obj.get_filename(): self._dict_from_obj(obj)
+            obj.get_message_id(): self._dict_from_obj(obj)
             for obj in flatten_depth_first(tree)
         }
 
         tree = {
-            msg.get_filename() if msg else None: [sub.get_filename() for sub in tree[msg]]
+            msg.get_message_id() if msg else None: [sub.get_message_id() for sub in tree[msg]]
             for msg in tree
         }
 
@@ -245,11 +245,11 @@ class ThreadMessagesModel(BasicTreeModel):
         # self.tree = build_thread_tree(thread)
 
     def _dict_from_obj(self, msg):
-        excerpt = EXCERPT_BUILDER.getOrBuild(msg.get_filename())
+        excerpt = EXCERPT_BUILDER.getOrBuild(msg.get_message_id())
 
         return {
-            'key': msg.get_filename(),
-            'id': msg.get_message_id(),
+            'filename': msg.get_filename(),
+            'key': msg.get_message_id(),
             'sender': msg.get_header('From'),
             'date': msg.get_date(),
             'excerpt': excerpt,
@@ -261,9 +261,9 @@ class ThreadMessagesModel(BasicTreeModel):
             return QVariant()
 
         if role == self.MessageIdRole:
-            return QVariant(item['id'])
-        elif role == self.MessageFilenameRole:
             return QVariant(item['key'])
+        elif role == self.MessageFilenameRole:
+            return QVariant(item['filename'])
         elif role == self.MessageObjectRole:
             raise NotImplementedError()
             return QVariant(item)
@@ -278,12 +278,14 @@ class ThreadMessagesModel(BasicTreeModel):
 
         return QVariant()
 
-    @Slot(str)
-    def _builtExcerpt(self, filename):
-        parent = self.parents[filename]
-        row = self.tree[parent].index(filename)
+    @Slot(str, str)
+    def _builtExcerpt(self, msg_id, text):
+        self.objs[msg_id]['excerpt'] = text
 
-        qidx = self.createIndex(row, 2, self.objs[filename])
+        parent = self.parents[msg_id]
+        row = self.tree[parent].index(msg_id)
+
+        qidx = self.createIndex(row, 2, self.objs[msg_id])
         self.dataChanged.emit(qidx, qidx)
 
 
