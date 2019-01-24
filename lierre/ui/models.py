@@ -381,6 +381,7 @@ class TagsListModel(BasicListModel):
 
 class ThreadListModel(BasicListModel):
     ThreadIdRole = register_role()
+    ThreadHasUnreadRole = register_role()
 
     columns = (
         ('Subject', 'subject'),
@@ -400,6 +401,7 @@ class ThreadListModel(BasicListModel):
             'subject': thread.get_subject(),
             'messages_count': thread.get_total_messages(),
             'last_update': thread.get_newest_date(),
+            'has_unread': 'unread' in thread.get_tags(),
         }
 
     def _get_messages_count(self, thread):
@@ -413,7 +415,9 @@ class ThreadListModel(BasicListModel):
         if item is None:
             return QVariant()
 
-        if role == Qt.DisplayRole:
+        if role == self.ThreadHasUnreadRole:
+            return QVariant(item['has_unread'])
+        elif role == Qt.DisplayRole:
             name = self.columns[qidx.column()][1]
             data = item[name]
             if name == 'last_update':

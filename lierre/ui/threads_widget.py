@@ -1,11 +1,18 @@
 
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QStyledItemDelegate
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from lierre.utils.db_ops import open_db
 
 from .models import ThreadListModel, TagsListModel
 from .threads_widget_ui import Ui_Form
+
+
+class ThreadDelegate(QStyledItemDelegate):
+    def initStyleOption(self, option, qidx):
+        super(ThreadDelegate, self).initStyleOption(option, qidx)
+        if qidx.sibling(qidx.row(), 0).data(qidx.model().ThreadHasUnreadRole):
+            option.font.setBold(True)
 
 
 class ThreadsWidget(QWidget, Ui_Form):
@@ -20,6 +27,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.tagsView.tagActivated.connect(self.tagActivated)
 
         self.threadsView.setModel(ThreadListModel())
+        self.threadsView.setItemDelegate(ThreadDelegate())
         self.threadsView.setDragEnabled(True)
 
         self.searchLine.returnPressed.connect(self.doSearch)
