@@ -31,6 +31,7 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         self.setupUi(self)
         self.headerWidget.installEventFilter(self)
 
+        self.message_id = message.get_message_id()
         self.message_filename = message.get_filename()
         self.fromLabel.setText(message.get_header('From'))
         self.toLabel.setText(message.get_header('To'))
