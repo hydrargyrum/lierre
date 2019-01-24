@@ -221,8 +221,8 @@ class ThreadMessagesModel(BasicTreeModel):
 
     columns = (
         ('Sender', 'sender'),
-        ('Date', 'date'),
         ('Excerpt', 'excerpt'),
+        ('Date', 'date'),
     )
 
     def __init__(self, tree, *args, **kwargs):
@@ -383,8 +383,8 @@ class ThreadListModel(BasicListModel):
     ThreadIdRole = register_role()
 
     columns = (
-        ('Authors', 'authors'),
         ('Subject', 'subject'),
+        ('Authors', 'authors'),
         ('Messages', 'messages_count'),
         ('Last update', 'last_update'),
     )
