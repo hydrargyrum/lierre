@@ -4,10 +4,10 @@ import email.policy
 import html
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFrame, QMenu,
+    QWidget, QVBoxLayout, QFrame, QLabel, QMenu,
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
@@ -135,6 +135,13 @@ class MessagesView(QWidget):
         message_list = flatten_depth_first(tree)
 
         self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
+
+        subjectLabel = QLabel()
+        subjectLabel.setTextFormat(Qt.PlainText)
+        subjectLabel.setText(self.tr('Subject: %s') % thread.get_subject())
+        subjectLabel.setLineWidth(1)
+        subjectLabel.setFrameShape(QFrame.Box)
+        self.layout().addWidget(subjectLabel)
 
         self.buildUi(message_list)
 
