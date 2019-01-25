@@ -4,14 +4,15 @@ from PyQt5.QtWidgets import QWidget, QStyledItemDelegate
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
 from lierre.utils.db_ops import open_db
 
-from .models import ThreadListModel, TagsListModel
+from .models import ThreadListModel, TagsListModel, MaildirFlags
 from .threads_widget_ui import Ui_Form
 
 
 class ThreadDelegate(QStyledItemDelegate):
     def initStyleOption(self, option, qidx):
         super(ThreadDelegate, self).initStyleOption(option, qidx)
-        if qidx.sibling(qidx.row(), 0).data(qidx.model().ThreadHasUnreadRole):
+        flags = qidx.sibling(qidx.row(), 0).data(qidx.model().ThreadFlagsRole)
+        if flags & MaildirFlags.Unread:
             option.font.setBold(True)
 
 

@@ -2,6 +2,7 @@
 from hashlib import sha1
 import json
 import logging
+from enum import IntFlag, auto as enum_auto
 
 from PyQt5.QtCore import (
     QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData, pyqtSlot as Slot,
@@ -213,11 +214,33 @@ class BasicListModel(QAbstractItemModel):
         self.modelReset.emit()
 
 
+class MaildirFlags(IntFlag):
+    Unread = enum_auto()
+    Flagged = enum_auto()
+    Replied = enum_auto()
+    Passed = enum_auto()
+    Draft = enum_auto()
+    Trashed = enum_auto()
+
+    @classmethod
+    def tags_to_flags(cls, tags):
+        flags = cls(0)
+
+        # these are special notmuch tags: https://notmuchmail.org/special-tags/
+        mapping = {member.name.lower(): member for member in cls}
+        for tag in tags:
+            if tag in mapping:
+                flags |= mapping[tag]
+
+        return flags
+
+
 class ThreadMessagesModel(BasicTreeModel):
     MessageIdRole = register_role()
     MessageFilenameRole = register_role()
     MessageFileRole = register_role()
     MessageObjectRole = register_role()
+    MessageFlagsRole = register_role()
 
     columns = (
         ('Sender', 'sender'),
@@ -253,6 +276,7 @@ class ThreadMessagesModel(BasicTreeModel):
             'sender': msg.get_header('From'),
             'date': msg.get_date(),
             'excerpt': excerpt,
+            'tags': list(msg.get_tags()),
         }
 
     def data(self, qidx, role):
@@ -267,6 +291,8 @@ class ThreadMessagesModel(BasicTreeModel):
         elif role == self.MessageObjectRole:
             raise NotImplementedError()
             return QVariant(item)
+        elif role == self.MessageFlagsRole:
+            return QVariant(MaildirFlags.tags_to_flags(item['tags']))
         elif role == Qt.DisplayRole:
             name = self.columns[qidx.column()][1]
             data = item[name]
@@ -389,7 +415,7 @@ class TagsListModel(BasicListModel):
 
 class ThreadListModel(BasicListModel):
     ThreadIdRole = register_role()
-    ThreadHasUnreadRole = register_role()
+    ThreadFlagsRole = register_role()
 
     columns = (
         ('Subject', 'subject'),
@@ -409,7 +435,7 @@ class ThreadListModel(BasicListModel):
             'subject': thread.get_subject(),
             'messages_count': thread.get_total_messages(),
             'last_update': thread.get_newest_date(),
-            'has_unread': 'unread' in thread.get_tags(),
+            'tags': list(thread.get_tags()),
         }
 
     def _get_messages_count(self, thread):
@@ -423,8 +449,8 @@ class ThreadListModel(BasicListModel):
         if item is None:
             return QVariant()
 
-        if role == self.ThreadHasUnreadRole:
-            return QVariant(item['has_unread'])
+        if role == self.ThreadFlagsRole:
+            return QVariant(MaildirFlags.tags_to_flags(item['tags']))
         elif role == Qt.DisplayRole:
             name = self.columns[qidx.column()][1]
             data = item[name]
