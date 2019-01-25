@@ -177,6 +177,10 @@ class MessagesView(QWidget):
 
         self.layout().replaceWidget(qmsg, new)
         qmsg.deleteLater()
+
+        if not collapsed:
+            self.expanded.emit(message.get_message_id())
+
         return new
 
     @Slot(str)
@@ -187,7 +191,7 @@ class MessagesView(QWidget):
         # TODO scroll into view
 
     @Slot(list, list)
-    def selectMessage(self, added, removed):
+    def selectMessageChanged(self, added, removed):
         def changeWidth(l, width):
             for message_id in l:
                 qmsg = self.widgets[message_id]
@@ -196,3 +200,4 @@ class MessagesView(QWidget):
         changeWidth(removed, 1)
         changeWidth(added, 2)
 
+    expanded = Signal(str)

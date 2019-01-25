@@ -288,6 +288,14 @@ class ThreadMessagesModel(BasicTreeModel):
         qidx = self.createIndex(row, 2, self.objs[msg_id])
         self.dataChanged.emit(qidx, qidx)
 
+    def _itemToIndex(self, key):
+        parent = self.parents[key]
+        row = self.tree[parent].index(key)
+        return self.createIndex(row, 0, self.objs[key])
+
+    def findById(self, msg_id):
+        return self._itemToIndex(msg_id)
+
 
 def tag_to_colors(tag):
     r, g, b = sha1(tag.encode('utf-8')).digest()[:3]

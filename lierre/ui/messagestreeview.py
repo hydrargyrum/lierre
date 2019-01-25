@@ -29,8 +29,18 @@ class MessagesTreeView(QTreeView):
         def names(l):
             return [qidx.data(ThreadMessagesModel.MessageIdRole) for qidx in l]
 
-        self.messagesSelected.emit(names(added.indexes()), names(removed.indexes()))
+        self.messagesSelectionChanged.emit(
+            names(added.indexes()), names(removed.indexes())
+        )
+
+        self.messagesSelected.emit(names(self.selectedIndexes()))
 
     messageActivated = Signal(str)
-    messagesSelected = Signal(list, list)
+    messagesSelectionChanged = Signal(list, list)
+    messagesSelected = Signal(list)
+
+    @Slot(str)
+    def selectMessage(self, msg_id):
+        qidx = self.model().findById(msg_id)
+        self.setCurrentIndex(qidx)
 
