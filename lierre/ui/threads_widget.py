@@ -1,19 +1,86 @@
 
 
-from PyQt5.QtWidgets import QWidget, QStyledItemDelegate
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, QStyle
+from PyQt5.QtGui import QFontMetrics, QPen
+from PyQt5.QtCore import (
+    pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize,
+)
 from lierre.utils.db_ops import open_db
 
-from .models import ThreadListModel, TagsListModel, MaildirFlags
+from .models import ThreadListModel, TagsListModel, MaildirFlags, tag_to_colors
 from .threads_widget_ui import Ui_Form
 
 
-class ThreadDelegate(QStyledItemDelegate):
+class ThreadUnreadDelegate(QStyledItemDelegate):
     def initStyleOption(self, option, qidx):
-        super(ThreadDelegate, self).initStyleOption(option, qidx)
+        super(ThreadUnreadDelegate, self).initStyleOption(option, qidx)
         flags = qidx.sibling(qidx.row(), 0).data(qidx.model().ThreadFlagsRole)
         if flags & MaildirFlags.Unread:
             option.font.setBold(True)
+
+
+class ThreadSubjectDelegate(ThreadUnreadDelegate):
+    xpadding = 2
+    xmargin = 5
+    ymargin = 0
+
+    def _positions(self, option, tags):
+        fm = QFontMetrics(option.font)
+
+        for tag in tags:
+            sz = fm.size(Qt.TextSingleLine, tag)
+            yield sz, tag
+
+    def paint(self, painter, option, qidx):
+        self.initStyleOption(option, qidx)
+
+        tags = qidx.sibling(qidx.row(), 0).data(qidx.model().ThreadTagsRole)
+
+        painter.save()
+        try:
+            if option.state & QStyle.State_Selected:
+                painter.setBackground(option.palette.highlight())
+            else:
+                painter.setBackground(option.palette.base())
+            painter.eraseRect(option.rect)
+
+            painter.setClipRect(option.rect)
+            painter.translate(option.rect.topLeft())
+            painter.setFont(option.font)
+
+            fm = QFontMetrics(option.font)
+
+            x = self.xmargin
+            for sz, tag in self._positions(option, tags):
+                fg, bg = tag_to_colors(tag)
+                painter.setPen(fg.color())
+
+                painter.fillRect(x, self.ymargin, sz.width() + 2 * self.xpadding, fm.height(), bg.color())
+                painter.drawText(x + self.xpadding, self.ymargin + fm.ascent(), tag)
+                x += sz.width() + self.xmargin + 2 * self.xpadding
+
+            if option.state & QStyle.State_Selected:
+                painter.setPen(QPen(option.palette.highlightedText(), 1))
+            else:
+                painter.setPen(QPen(option.palette.text(), 1))
+            painter.drawText(x + self.xpadding, self.ymargin + fm.ascent(), qidx.data())
+        finally:
+            painter.restore()
+
+    def sizeHint(self, option, qidx):
+        tags = qidx.sibling(qidx.row(), 0).data(qidx.model().ThreadTagsRole)
+
+        fm = QFontMetrics(option.font)
+
+        x = self.xmargin
+        y = 0
+        for sz, tag in self._positions(option, tags):
+            x += sz.width() + self.xmargin + 2 * self.xpadding
+            y = self.ymargin * 2 + fm.height()
+
+        x += fm.size(Qt.TextSingleLine, qidx.data()).width()
+
+        return QSize(x, y)
 
 
 class ThreadsWidget(QWidget, Ui_Form):
@@ -28,7 +95,8 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.tagsView.tagActivated.connect(self.tagActivated)
 
         self.threadsView.setModel(ThreadListModel())
-        self.threadsView.setItemDelegate(ThreadDelegate())
+        self.threadsView.setItemDelegate(ThreadUnreadDelegate())
+        self.threadsView.setItemDelegateForColumn(0, ThreadSubjectDelegate())
         self.threadsView.setDragEnabled(True)
 
         self.searchLine.returnPressed.connect(self.doSearch)

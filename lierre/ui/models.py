@@ -416,6 +416,7 @@ class TagsListModel(BasicListModel):
 class ThreadListModel(BasicListModel):
     ThreadIdRole = register_role()
     ThreadFlagsRole = register_role()
+    ThreadTagsRole = register_role()
 
     columns = (
         ('Subject', 'subject'),
@@ -451,6 +452,8 @@ class ThreadListModel(BasicListModel):
 
         if role == self.ThreadFlagsRole:
             return QVariant(MaildirFlags.tags_to_flags(item['tags']))
+        elif role == self.ThreadTagsRole:
+            return QVariant(item['tags'])
         elif role == Qt.DisplayRole:
             name = self.columns[qidx.column()][1]
             data = item[name]
