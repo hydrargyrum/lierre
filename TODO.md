@@ -3,8 +3,6 @@
 
 * thread sorting in threads list
 
-* customize tag color
-
 * display body excerpt
     * store in message properties?
 

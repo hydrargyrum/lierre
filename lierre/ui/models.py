@@ -8,6 +8,7 @@ from PyQt5.QtCore import (
     QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData, pyqtSlot as Slot,
 )
 from PyQt5.QtGui import QBrush, QColor
+from lierre.config import CONFIG
 
 from ..utils.date import short_datetime
 from ..utils.addresses import get_sender
@@ -324,14 +325,22 @@ class ThreadMessagesModel(BasicTreeModel):
 
 
 def tag_to_colors(tag):
-    r, g, b = sha1(tag.encode('utf-8')).digest()[:3]
-    bg = QBrush(QColor(r, g, b))
-    if r + g + b < 128 * 3:
-        fg = QBrush(QColor('white'))
-    else:
-        fg = QBrush(QColor('black'))
+    bg = CONFIG.get('tag_colors', tag, fallback=None)
 
-    return fg, bg
+    if bg is not None:
+        bg = QColor(bg)
+    else:
+        r, g, b = sha1(tag.encode('utf-8')).digest()[:3]
+        bg = QColor(r, g, b)
+
+    return QBrush(_fg_from_bg_color(bg)), QBrush(bg)
+
+
+def _fg_from_bg_color(qcolor):
+    if qcolor.red() + qcolor.green() + qcolor.blue() < 128 * 3:
+        return QColor('white')
+    else:
+        return QColor('black')
 
 
 class TagsListModel(BasicListModel):
