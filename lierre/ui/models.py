@@ -9,10 +9,9 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QBrush, QColor
 from lierre.config import CONFIG
-
-from ..utils.date import short_datetime
-from ..utils.addresses import get_sender
-from ..utils.db_ops import (
+from lierre.utils.date import short_datetime
+from lierre.utils.addresses import get_sender
+from lierre.utils.db_ops import (
     iter_thread_messages, get_thread_by_id, EXCERPT_BUILDER, open_db_rw,
 )
 
