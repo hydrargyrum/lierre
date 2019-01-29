@@ -100,3 +100,6 @@ class ExcerptBuilder(QObject):
 
 
 EXCERPT_BUILDER = ExcerptBuilder()
+
+
+UNTOUCHABLE_TAGS = frozenset({'attachment', 'signed', 'encrypted', 'passed', 'replied'})

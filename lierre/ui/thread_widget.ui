@@ -30,24 +30,44 @@
        <number>10</number>
       </property>
      </widget>
-     <widget class="QScrollArea" name="threadViewScroll">
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="MessagesView" name="messagesView">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>142</width>
-         <height>367</height>
-        </rect>
-       </property>
-      </widget>
+     <widget class="QWidget" name="layoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QScrollArea" name="threadViewScroll">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="MessagesView" name="messagesView">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>95</width>
+            <height>365</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
   </layout>
+  <action name="actionTagMessage">
+   <property name="text">
+    <string>Tags...</string>
+   </property>
+  </action>
+  <action name="actionSelectAll">
+   <property name="icon">
+    <iconset theme="edit-select-all">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Select all</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
