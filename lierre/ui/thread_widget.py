@@ -73,6 +73,8 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
 
         tb.addAction(self.actionSelectAll)
         self.actionSelectAll.triggered.connect(self.messagesTree.selectAll)
+        tb.addAction(self.actionDeleteMessage)
+        self.actionDeleteMessage.triggered.connect(self._deleteSelectedMessages)
 
         self.updateToolbarState()
 
@@ -122,6 +124,14 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
                     msg.remove_tag(tag)
 
     @Slot()
+    def _deleteSelectedMessages(self):
+        msg_ids = self._getSelectedMessages()
+        with open_db_rw() as db:
+            for msg_id in msg_ids:
+                msg = db.find_message(msg_id)
+                msg.add_tag('deleted')
+
+    @Slot()
     def updateToolbarState(self):
         nb_selected = len([
             qidx for qidx in self.messagesTree.selectedIndexes()
@@ -129,4 +139,5 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
         ])
 
         self.actionTagMessage.setEnabled(bool(nb_selected))
+        self.actionDeleteMessage.setEnabled(bool(nb_selected))
 

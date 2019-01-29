@@ -59,6 +59,15 @@
     <string>Tags...</string>
    </property>
   </action>
+  <action name="actionDeleteMessage">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Delete message</string>
+   </property>
+  </action>
   <action name="actionSelectAll">
    <property name="icon">
     <iconset theme="edit-select-all">
