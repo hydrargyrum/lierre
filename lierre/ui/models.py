@@ -157,18 +157,6 @@ class BasicListModel(QAbstractItemModel):
     def parent(self, qidx):
         return QModelIndex()
 
-        item = qidx.internalPointer()
-        if item is None:
-            return QModelIndex()
-
-        parent = self.parents[self._to_key(item)]
-        if parent is None:
-            return QModelIndex()
-
-        gparent = self.parents[parent]
-        row = self.tree[gparent].index(parent)
-        return self.createIndex(row, 0, self.objs[parent])
-
     def flags(self, qidx):
         obj = qidx.internalPointer()
         if obj is None:
