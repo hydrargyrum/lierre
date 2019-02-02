@@ -77,6 +77,24 @@
     <string>Delete message</string>
    </property>
   </action>
+  <action name="actionReplyToAll">
+   <property name="icon">
+    <iconset theme="mail-reply-all">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Reply to all</string>
+   </property>
+  </action>
+  <action name="actionForward">
+   <property name="icon">
+    <iconset theme="mail-forward">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Forward</string>
+   </property>
+  </action>
   <action name="actionSelectAll">
    <property name="icon">
     <iconset theme="edit-select-all">
@@ -84,6 +102,15 @@
    </property>
    <property name="text">
     <string>Select all</string>
+   </property>
+  </action>
+  <action name="actionReplyToSender">
+   <property name="icon">
+    <iconset theme="mail-reply-sender">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Reply to sender</string>
    </property>
   </action>
  </widget>

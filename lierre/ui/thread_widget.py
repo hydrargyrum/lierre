@@ -1,7 +1,7 @@
 
 from functools import reduce
 
-from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget, QToolBar, QMenu
 from lierre.utils.db_ops import open_db, open_db_rw, UNTOUCHABLE_TAGS
 
@@ -63,6 +63,13 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
     def setupToolbar(self):
         tb = QToolBar()
         self.verticalLayout.insertWidget(0, tb)
+
+        tb.addAction(self.actionReplyToAll)
+        self.actionReplyToAll.triggered.connect(self._compose)
+        tb.addAction(self.actionReplyToSender)
+        self.actionReplyToSender.triggered.connect(self._compose)
+        tb.addAction(self.actionForward)
+        self.actionForward.triggered.connect(self._compose)
 
         tb.addSeparator()
         tb.addAction(self.actionFlagMessage)
@@ -158,5 +165,20 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
 
         self.actionFlagMessage.setEnabled(bool(nb_selected))
         self.actionTagMessage.setEnabled(bool(nb_selected))
+        self.actionReplyToAll.setEnabled(nb_selected == 1)
+        self.actionReplyToSender.setEnabled(nb_selected == 1)
+        self.actionForward.setEnabled(nb_selected == 1)
         self.actionDeleteMessage.setEnabled(bool(nb_selected))
 
+    @Slot()
+    def _compose(self):
+        msg_id, = self._getSelectedMessages()
+        if self.sender() == self.actionReplyToAll:
+            self.triggeredReply.emit(msg_id, True)
+        elif self.sender() == self.actionReplyToSender:
+            self.triggeredReply.emit(msg_id, False)
+        elif self.sender() == self.actionForward:
+            self.triggeredForward.emit(msg_id)
+
+    triggeredReply = Signal(str, bool)
+    triggeredForward = Signal(str)

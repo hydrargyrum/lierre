@@ -7,6 +7,7 @@ from PyQt5.QtGui import QKeySequence
 
 from .threads_widget import ThreadsWidget
 from .thread_widget import ThreadWidget
+from .compose import ComposeWidget
 from lierre.utils.db_ops import open_db
 
 
@@ -60,9 +61,22 @@ class TabWidget(QTabWidget):
             thr = get_thread_by_id(db, tid)
             w = ThreadWidget(thr, parent=self)
 
+        w.triggeredReply.connect(self.addReply)
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
         return w
+
+    @Slot(str, bool)
+    def addReply(self, mid, to_all):
+        w = ComposeWidget(parent=self)
+        w.setReply(mid, to_all)
+        idx = self._addTab(w)
+        self.setCurrentIndex(idx)
+        return w
+
+    @Slot(str)
+    def addForward(self, mid):
+        pass
 
     def _addTab(self, widget):
         idx = self.addTab(widget, widget.windowTitle())
