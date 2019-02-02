@@ -59,6 +59,15 @@
     <string>Tags...</string>
    </property>
   </action>
+  <action name="actionFlagMessage">
+   <property name="icon">
+    <iconset theme="mail-mark-important">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle flagged</string>
+   </property>
+  </action>
   <action name="actionDeleteMessage">
    <property name="icon">
     <iconset theme="edit-delete">

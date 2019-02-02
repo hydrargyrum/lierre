@@ -64,6 +64,10 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
         tb = QToolBar()
         self.verticalLayout.insertWidget(0, tb)
 
+        tb.addSeparator()
+        tb.addAction(self.actionFlagMessage)
+        self.actionFlagMessage.triggered.connect(self._flagMessages)
+
         tb.addAction(self.actionTagMessage)
 
         tagMenu = QMenu('Tags')
@@ -123,6 +127,20 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
                 else:
                     msg.remove_tag(tag)
 
+    def _toggleTag(self, tag):
+        msg_ids = self._getSelectedMessages()
+        with open_db_rw() as db:
+            for msg_id in msg_ids:
+                msg = db.find_message(msg_id)
+                if tag in msg.get_tags():
+                    msg.remove_tag(tag)
+                else:
+                    msg.add_tag(tag)
+
+    @Slot()
+    def _flagMessages(self):
+        self._toggleTag('flagged')
+
     @Slot()
     def _deleteSelectedMessages(self):
         msg_ids = self._getSelectedMessages()
@@ -138,6 +156,7 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
             if qidx.column() == 0
         ])
 
+        self.actionFlagMessage.setEnabled(bool(nb_selected))
         self.actionTagMessage.setEnabled(bool(nb_selected))
         self.actionDeleteMessage.setEnabled(bool(nb_selected))
 
