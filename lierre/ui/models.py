@@ -64,7 +64,7 @@ class BasicTreeModel(QAbstractItemModel):
         self.parents = {}
 
     # QAbstractItemModel
-    def index(self, row, col, parent_qidx):
+    def index(self, row, col, parent_qidx=QModelIndex()):
         oparent = parent_qidx.internalPointer()
         children = self.tree.get(self._to_key(oparent), ())
         if row >= len(children) or col >= len(self.columns):
@@ -92,25 +92,25 @@ class BasicTreeModel(QAbstractItemModel):
         else:
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
-    def rowCount(self, qidx):
+    def rowCount(self, qidx=QModelIndex()):
         if qidx.column() != 0 and qidx.isValid():
             return 0
         item = qidx.internalPointer()
         return len(self.tree.get(self._to_key(item), ()))
 
-    def columnCount(self, qidx):
+    def columnCount(self, qidx=QModelIndex()):
         if qidx.column() != 0 and qidx.isValid():
             return 0
         return len(self.columns)
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
             return QVariant()
         elif section >= len(self.columns):
             return QVariant()
         return self.columns[section][0]
 
-    def hasChildren(self, qidx):
+    def hasChildren(self, qidx=QModelIndex()):
         item = qidx.internalPointer()
         return bool(len(self.tree.get(self._to_key(item), ())))
 
@@ -144,7 +144,7 @@ class BasicListModel(QAbstractItemModel):
         self.objs = []
 
     # QAbstractItemModel
-    def index(self, row, col, parent_qidx):
+    def index(self, row, col, parent_qidx=QModelIndex()):
         parent = parent_qidx.internalPointer()
         if parent:
             return QModelIndex()
@@ -164,7 +164,7 @@ class BasicListModel(QAbstractItemModel):
         else:
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
-    def rowCount(self, qidx):
+    def rowCount(self, qidx=QModelIndex()):
         if qidx.column() != 0 and qidx.isValid():
             return 0
         item = qidx.internalPointer()
@@ -173,19 +173,19 @@ class BasicListModel(QAbstractItemModel):
         else:
             return len(self.objs)
 
-    def columnCount(self, qidx):
+    def columnCount(self, qidx=QModelIndex()):
         if qidx.column() != 0 and qidx.isValid():
             return 0
         return len(self.columns)
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
             return QVariant()
         elif section >= len(self.columns):
             return QVariant()
         return self.columns[section][0]
 
-    def hasChildren(self, qidx):
+    def hasChildren(self, qidx=QModelIndex()):
         item = qidx.internalPointer()
         return not item
 
@@ -267,7 +267,7 @@ class ThreadMessagesModel(BasicTreeModel):
             'tags': list(msg.get_tags()),
         }
 
-    def data(self, qidx, role):
+    def data(self, qidx, role=Qt.DisplayRole):
         item = qidx.internalPointer()
         if item is None:
             return QVariant()
@@ -357,7 +357,7 @@ class TagsListModel(BasicListModel):
         text = str(item['unread']) if item['unread'] else ''
         return QVariant(text)
 
-    def data(self, qidx, role):
+    def data(self, qidx, role=Qt.DisplayRole):
         item = qidx.internalPointer()
         if item is None:
             return QVariant()
@@ -441,7 +441,7 @@ class ThreadListModel(BasicListModel):
     def _get_last_update(self, thread):
         return QVariant(short_datetime(()))
 
-    def data(self, qidx, role):
+    def data(self, qidx, role=Qt.DisplayRole):
         item = qidx.internalPointer()
         if item is None:
             return QVariant()
