@@ -3,7 +3,7 @@ from functools import reduce
 
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget, QToolBar, QMenu
-from lierre.utils.db_ops import open_db, open_db_rw, UNTOUCHABLE_TAGS
+from lierre.utils.db_ops import open_db, open_db_rw, UNTOUCHABLE_TAGS, get_thread_by_id
 from lierre.change_watcher import WATCHER
 
 from . import thread_widget_ui
@@ -40,26 +40,26 @@ def flatten_depth_first(tree_dict):
 
 
 class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
-    def __init__(self, thread, *args, **kwargs):
+    def __init__(self, thread_id, *args, **kwargs):
         super(ThreadWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
         self.setupToolbar()
 
-        tree = build_thread_tree(thread)
-
-        mdl = ThreadMessagesModel(tree)
+        mdl = ThreadMessagesModel(thread_id)
         self.messagesTree.setModel(mdl)
         self.messagesTree.expandAll()
 
-        self.messagesView.setThread(thread, tree)
+        self.messagesView.setThread(thread_id)
         self.messagesTree.messageActivated.connect(self.messagesView.showMessage)
         self.messagesTree.messagesSelectionChanged.connect(self.messagesView.selectMessageChanged)
         self.messagesTree.messagesSelectionChanged.connect(self.updateToolbarState)
 
         self.messagesView.expanded.connect(self.messagesTree.selectMessage)
 
-        self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
+        with open_db() as db:
+            thread = get_thread_by_id(db, thread_id)
+            self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
 
     def setupToolbar(self):
         tb = QToolBar()

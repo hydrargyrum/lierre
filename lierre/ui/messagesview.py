@@ -11,7 +11,9 @@ from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
-from lierre.utils.db_ops import EXCERPT_BUILDER, open_db
+from lierre.utils.db_ops import EXCERPT_BUILDER, open_db, get_thread_by_id
+
+from .models import build_thread_tree
 
 
 def flatten_depth_first(tree_dict):
@@ -132,19 +134,22 @@ class MessagesView(QWidget):
 
         self.widgets = {}
 
-    def setThread(self, thread, tree):
-        message_list = flatten_depth_first(tree)
+    def setThread(self, thread_id):
+        with open_db() as db:
+            thread = get_thread_by_id(db, thread_id)
+            tree = build_thread_tree(thread)
+            message_list = flatten_depth_first(tree)
 
-        self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
+            self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
 
-        subjectLabel = QLabel()
-        subjectLabel.setTextFormat(Qt.PlainText)
-        subjectLabel.setText(self.tr('Subject: %s') % thread.get_subject())
-        subjectLabel.setLineWidth(1)
-        subjectLabel.setFrameShape(QFrame.Box)
-        self.layout().addWidget(subjectLabel)
+            subjectLabel = QLabel()
+            subjectLabel.setTextFormat(Qt.PlainText)
+            subjectLabel.setText(self.tr('Subject: %s') % thread.get_subject())
+            subjectLabel.setLineWidth(1)
+            subjectLabel.setFrameShape(QFrame.Box)
+            self.layout().addWidget(subjectLabel)
 
-        self.buildUi(message_list)
+            self.buildUi(message_list)
 
     def buildUi(self, message_list):
         for msg in message_list:

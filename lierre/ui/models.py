@@ -270,20 +270,24 @@ class ThreadMessagesModel(BasicTreeModel):
         ('Date', 'date'),
     )
 
-    def __init__(self, tree, *args, **kwargs):
+    def __init__(self, thread_id, *args, **kwargs):
         super(ThreadMessagesModel, self).__init__(*args, **kwargs)
 
         EXCERPT_BUILDER.builtExcerpt.connect(self._builtExcerpt)
 
-        objs = {
-            obj.get_message_id(): self._dict_from_obj(obj)
-            for obj in flatten_depth_first(tree)
-        }
+        with open_db() as db:
+            thread = get_thread_by_id(db, thread_id)
+            tree = build_thread_tree(thread)
 
-        tree = {
-            msg.get_message_id() if msg else None: [sub.get_message_id() for sub in tree[msg]]
-            for msg in tree
-        }
+            objs = {
+                obj.get_message_id(): self._dict_from_obj(obj)
+                for obj in flatten_depth_first(tree)
+            }
+
+            tree = {
+                msg.get_message_id() if msg else None: [sub.get_message_id() for sub in tree[msg]]
+                for msg in tree
+            }
 
         self._setTree(tree, objs)
         # if building the tree here and it's built somewhere else too -> crash
