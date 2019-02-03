@@ -421,9 +421,18 @@ class ThreadListModel(BasicListModel):
         ('Last update', 'last_update'),
     )
 
-    def setQuery(self, query):
-        objs = [self._thread_to_dict(thread) for thread in query.search_threads()]
+    def __init__(self, *args, **kwargs):
+        super(ThreadListModel, self).__init__(*args, **kwargs)
+        self.query_text = None
+
+    def setQuery(self, db, query_text):
+        self.query_text = query_text
+        objs = self._build_objs(db)
         self._setObjs(objs)
+
+    def _build_objs(self, db):
+        query = db.create_query(self.query_text)
+        return [self._thread_to_dict(thread) for thread in query.search_threads()]
 
     def _thread_to_dict(self, thread):
         return {

@@ -113,8 +113,7 @@ class ThreadsWidget(QWidget, Ui_Form):
     def doSearch(self):
         query_text = self.searchLine.text()
         with open_db() as db:
-            q = db.create_query(query_text)
-            self.threadsView.model().setQuery(q)
+            self.threadsView.model().setQuery(db, query_text)
         self.setWindowTitle(self.tr('Query: %s') % query_text)
 
     def setQueryAndSearch(self, text):
