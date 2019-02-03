@@ -4,6 +4,7 @@ from functools import reduce
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget, QToolBar, QMenu
 from lierre.utils.db_ops import open_db, open_db_rw, UNTOUCHABLE_TAGS
+from lierre.change_watcher import WATCHER
 
 from . import thread_widget_ui
 from .models import ThreadMessagesModel
@@ -131,8 +132,10 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
                 msg = db.find_message(msg_id)
                 if add:
                     msg.add_tag(tag)
+                    WATCHER.tagMailAdded.emit(tag, msg_id)
                 else:
                     msg.remove_tag(tag)
+                    WATCHER.tagMailRemoved.emit(tag, msg_id)
 
     def _toggleTag(self, tag):
         msg_ids = self._getSelectedMessages()
@@ -141,8 +144,10 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
                 msg = db.find_message(msg_id)
                 if tag in msg.get_tags():
                     msg.remove_tag(tag)
+                    WATCHER.tagMailRemoved.emit(tag, msg_id)
                 else:
                     msg.add_tag(tag)
+                    WATCHER.tagMailAdded.emit(tag, msg_id)
 
     @Slot()
     def _flagMessages(self):
@@ -155,6 +160,7 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
             for msg_id in msg_ids:
                 msg = db.find_message(msg_id)
                 msg.add_tag('deleted')
+                WATCHER.tagMailAdded.emit('deleted', msg_id)
 
     @Slot()
     def updateToolbarState(self):

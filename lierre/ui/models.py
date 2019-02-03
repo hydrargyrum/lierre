@@ -13,7 +13,9 @@ from lierre.utils.date import short_datetime
 from lierre.utils.addresses import get_sender
 from lierre.utils.db_ops import (
     iter_thread_messages, get_thread_by_id, EXCERPT_BUILDER, open_db_rw,
+    open_db,
 )
+from lierre.change_watcher import WATCHER, diff_sorted
 
 
 LOGGER = logging.getLogger(__name__)
@@ -201,6 +203,38 @@ class BasicListModel(QAbstractItemModel):
         self.objs = objs
         self.modelReset.emit()
 
+    def _sort_key(self, d):
+        raise NotImplementedError()
+
+    def _updateObjs(self, new_objs):
+        old_keys = [self._sort_key(d) for d in self.objs]
+        new_keys = [self._sort_key(d) for d in new_objs]
+
+        n = 0
+        for old, new in diff_sorted(old_keys, new_keys):
+            if old is None:
+                self.beginInsertRows(QModelIndex(), n, n)
+                self.objs.insert(n, new_objs[n])
+                self.endInsertRows()
+                n += 1
+            elif new is None:
+                self.beginRemoveRows(QModelIndex(), n, n)
+                del self.objs[n]
+                self.endRemoveRows()
+            else:
+                assert old == new
+                # warning: letting self.objs[n] to another object will lead
+                # to crashes as a view can keep an old QModelIndex with an
+                # old dict that we would be freeing right now.
+                # thus we need to mutate the existing dict
+                self.objs[n].clear()
+                self.objs[n].update(new_objs[n])
+
+                qidx1 = self.index(n, 0)
+                qidx2 = qidx1.siblingAtColumn(self.columnCount() - 1)
+                self.dataChanged.emit(qidx1, qidx2, [])
+                n += 1
+
 
 class MaildirFlags(IntFlag):
     Unread = enum_auto()
@@ -338,14 +372,21 @@ class TagsListModel(BasicListModel):
 
     def __init__(self, db, *args, **kwargs):
         super(TagsListModel, self).__init__(*args, **kwargs)
-        objs = [
+        objs = self._build_objs(db)
+        self._setObjs(objs)
+
+        WATCHER.globalRefresh.connect(self.refresh)
+        WATCHER.tagMailAdded.connect(self.refresh)
+        WATCHER.tagMailRemoved.connect(self.refresh)
+
+    def _build_objs(self, db):
+        return [
             {
                 'name': tag,
                 'unread': db.create_query('tag:%s AND tag:unread' % tag).count_threads(),
             }
             for tag in db.get_all_tags()
         ]
-        self._setObjs(objs)
 
     def supportedDropActions(self):
         return Qt.LinkAction
@@ -408,6 +449,15 @@ class TagsListModel(BasicListModel):
 
         return True
 
+    @Slot()
+    def refresh(self):
+        with open_db() as db:
+            new_objs = self._build_objs(db)
+        self._updateObjs(new_objs)
+
+    def _sort_key(self, d):
+        return d['tag']
+
 
 class ThreadListModel(BasicListModel):
     ThreadIdRole = register_role()
@@ -424,6 +474,7 @@ class ThreadListModel(BasicListModel):
     def __init__(self, *args, **kwargs):
         super(ThreadListModel, self).__init__(*args, **kwargs)
         self.query_text = None
+        WATCHER.globalRefresh.connect(self.refresh)
 
     def setQuery(self, db, query_text):
         self.query_text = query_text
@@ -489,3 +540,14 @@ class ThreadListModel(BasicListModel):
         mime = QMimeData()
         mime.setData('text/x-lierre-threads', json.dumps(ids).encode('ascii'))
         return mime
+
+    @Slot()
+    def refresh(self):
+        if not self.query_text:
+            return
+        with open_db() as db:
+            objs = self._build_objs(db)
+        self._updateObjs(objs)
+
+    def _sort_key(self, d):
+        return (-d['last_update'], d['id'])
