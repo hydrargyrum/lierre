@@ -1,7 +1,9 @@
 
 from collections import deque
+from contextlib import contextmanager
 import email
 import email.policy
+import gc
 import re
 
 import notmuch
@@ -28,12 +30,25 @@ def iter_thread_messages(thread):
         yield from _iter(msg)
 
 
+@contextmanager
 def open_db():
-    return notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+    try:
+        with notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY) as db:
+            yield db
+    finally:
+        # WTF: collecting now makes python to free Thread then Threads.
+        # Omitting it can cause python to free Threads then Thread (segfault!)
+        # This happens more when build_thread_tree is used.
+        gc.collect()
 
 
+@contextmanager
 def open_db_rw():
-    return notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
+    try:
+        with notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE) as db:
+            yield db
+    finally:
+        gc.collect()
 
 
 class ExcerptBuilder(QObject):

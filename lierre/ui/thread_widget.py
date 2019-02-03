@@ -1,6 +1,4 @@
 
-import gc
-
 from PyQt5.QtWidgets import QWidget
 
 from . import thread_widget_ui
@@ -54,9 +52,4 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
         self.messagesView.expanded.connect(self.messagesTree.selectMessage)
 
         self.setWindowTitle(self.tr('Thread: %s') % thread.get_subject())
-
-        # WTF: collecting now makes python to free Thread then Threads
-        # omitting it will cause python to free Threads then Thread (segfault!)
-        del tree
-        gc.collect()
 

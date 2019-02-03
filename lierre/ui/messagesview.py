@@ -160,28 +160,27 @@ class MessagesView(QWidget):
         self._toggleMessageWidget(qmsg)
 
     def _toggleMessageWidget(self, qmsg):
-        db = open_db()
+        with open_db() as db:
+            message = db.find_message(qmsg.message_id)
 
-        message = db.find_message(qmsg.message_id)
+            collapsed = isinstance(qmsg, PlainMessageWidget)
 
-        collapsed = isinstance(qmsg, PlainMessageWidget)
+            if collapsed:
+                new = CollapsedMessageWidget(message)
+                # new.toggle.connect(self._selectInTree)
+            else:
+                new = PlainMessageWidget(message)
+            new.toggle.connect(self._toggleMessage)
+            new.setLineWidth(qmsg.lineWidth())
+            self.widgets[message.get_message_id()] = new
 
-        if collapsed:
-            new = CollapsedMessageWidget(message)
-            # new.toggle.connect(self._selectInTree)
-        else:
-            new = PlainMessageWidget(message)
-        new.toggle.connect(self._toggleMessage)
-        new.setLineWidth(qmsg.lineWidth())
-        self.widgets[message.get_message_id()] = new
+            self.layout().replaceWidget(qmsg, new)
+            qmsg.deleteLater()
 
-        self.layout().replaceWidget(qmsg, new)
-        qmsg.deleteLater()
+            if not collapsed:
+                self.expanded.emit(message.get_message_id())
 
-        if not collapsed:
-            self.expanded.emit(message.get_message_id())
-
-        return new
+            return new
 
     @Slot(str)
     def showMessage(self, message_id):
