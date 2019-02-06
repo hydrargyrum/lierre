@@ -6,14 +6,16 @@ import html
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QFrame, QLabel, QMenu,
 )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt
+from PyQt5.QtGui import QIcon, QPainter, QFontMetrics
+from PyQt5.QtCore import (
+    pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize,
+)
 from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
 from lierre.utils.db_ops import EXCERPT_BUILDER, open_db, get_thread_by_id
 
-from .models import build_thread_tree
+from .models import build_thread_tree, tag_to_colors
 
 
 def flatten_depth_first(tree_dict):
@@ -38,6 +40,10 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         self.fromLabel.setText(message.get_header('From'))
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(message.get_header('Date'))
+
+        idx = self.layout().indexOf(self.messageEdit)
+        tags_widget = TagsLabelWidget(list(message.get_tags()), parent=self)
+        self.layout().insertWidget(idx, tags_widget)
 
         self._populate_body()
         self._populate_attachments()
@@ -205,3 +211,58 @@ class MessagesView(QWidget):
         changeWidth(added, 2)
 
     expanded = Signal(str)
+
+
+class TagsLabelWidget(QFrame):
+    xpadding = 2
+    xmargin = 5
+    ymargin = 0
+
+    def __init__(self, tags, *args, **kwargs):
+        super(TagsLabelWidget, self).__init__(*args, **kwargs)
+        self.tags = tags
+
+    def _positions(self, tags):
+        fm = QFontMetrics(self.font())
+
+        for tag in tags:
+            sz = fm.size(Qt.TextSingleLine, tag)
+            yield sz, tag
+
+    def paintEvent(self, ev):
+        super(TagsLabelWidget, self).paintEvent(ev)
+
+        painter = QPainter(self)
+
+        painter.save()
+        try:
+            painter.setBackground(self.palette().brush(self.backgroundRole()))
+            painter.eraseRect(ev.rect())
+
+            painter.setClipRect(ev.rect())
+            painter.translate(ev.rect().topLeft())
+
+            fm = QFontMetrics(self.font())  # TODO use style
+
+            x = self.xmargin
+            for sz, tag in self._positions(self.tags):
+                fg, bg = tag_to_colors(tag)
+                painter.setPen(fg.color())
+
+                painter.fillRect(x, self.ymargin, sz.width() + 2 * self.xpadding, fm.height(), bg.color())
+                painter.drawText(x + self.xpadding, self.ymargin + fm.ascent(), tag)
+                x += sz.width() + self.xmargin + 2 * self.xpadding
+
+        finally:
+            painter.restore()
+
+    def sizeHint(self):
+        fm = QFontMetrics(self.font())
+
+        x = self.xmargin
+        y = 0
+        for sz, tag in self._positions(self.tags):
+            x += sz.width() + self.xmargin + 2 * self.xpadding
+            y = self.ymargin * 2 + fm.height()
+
+        return QSize(x, y)
