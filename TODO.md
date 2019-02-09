@@ -3,14 +3,16 @@
 
 * thread sorting in threads list
 
-* display body excerpt
-    * store in message properties?
-
 * try to support maildir folders?
     * allow moving
     * auto move a thread in the same folder?
 
-* display tags of a thread in threads list
+* better default column sizes
+* remember columns sizes
+
+* context menu
+
+* allow creating tags
 
 # mail view
 
@@ -19,23 +21,18 @@
 * save/view attachments
 * xdg thumbnail for attachments?
 
-* allow to choose plain text or html for mail view
-    * display cleaned html (security!)
-    * safe html message view (don't load resources)
+* display "cid:" resources
+* transform text links into real html links
 
-* display tags of a message
-* add/remove tag to/from a message
+* better tags display/edit
+* allow creating tags
 
 # sync
 
-* execute notmuch
-    * refresh views
+* refresh views when notmuch has been run
 
-* execute muchsync
-* execute fetchmail
-
-* use plugins for supporting different mail fetchers?
-    * pkg_resources?
+* IDLE imap to detect changes
+    * use a plugin?
 
 # composing mail
 
@@ -68,7 +65,8 @@
 * scriptability/plugins
 * prefs dialog
 
-* propose default notmuch hooks for auto-tagging all messages in a thread, etc.
+* propose default notmuch plugins for auto-tagging all messages in a thread, etc.
+* ui plugins
 
 # extra-mail interactions
 
@@ -79,4 +77,4 @@
 # spam control
 
 * mark spam/ham
-
+    * done by filter plugins?
