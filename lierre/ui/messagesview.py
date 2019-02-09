@@ -35,6 +35,11 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         self.setupUi(self)
         self.headerWidget.installEventFilter(self)
 
+        tool_menu = QMenu()
+        tool_menu.addAction(self.actionChooseText)
+        tool_menu.addAction(self.actionChooseHTML)
+        self.toolButton.setMenu(tool_menu)
+
         self.message_id = message.get_message_id()
         self.message_filename = message.get_filename()
         self.fromLabel.setText(message.get_header('From'))
@@ -45,13 +50,35 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         tags_widget = TagsLabelWidget(list(message.get_tags()), parent=self)
         self.layout().insertWidget(idx, tags_widget)
 
+        with open(self.message_filename, 'rb') as fp:
+            self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
+
+        self.display_format = 'plain'
         self._populate_body()
         self._populate_attachments()
 
     def _populate_body(self):
-        with open(self.message_filename, 'rb') as fp:
-            self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
-        body = self.pymessage.get_body('plain').get_content()
+        if self.display_format == 'plain':
+            self._populate_body_plain()
+        elif self.display_format == 'html':
+            self._populate_body_html()
+        else:
+            assert False
+
+    def _populate_body_html(self):
+        body = self.pymessage.get_body(('html',))
+        if body is None:
+            return
+
+        body = body.get_content()
+        self.messageEdit.setHtml(body)
+
+    def _populate_body_plain(self):
+        body = self.pymessage.get_body(('plain',))
+        if body is None:
+            return
+
+        body = body.get_content()
 
         parser = Parser()
         parsed = parser.parse(body)
@@ -101,6 +128,15 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         return False
 
     toggle = Signal()
+
+    @Slot()
+    def on_actionChooseText_triggered(self):
+        self.display_format = 'plain'
+        self._populate_body()
+
+    def on_actionChooseHTML_triggered(self):
+        self.display_format = 'html'
+        self._populate_body()
 
 
 class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
