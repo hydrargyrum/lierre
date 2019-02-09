@@ -74,3 +74,4 @@ def init_plugins_from_config(plugin_kind):
 
 def init():
     init_plugins_from_config('fetchers')
+    init_plugins_from_config('filters')

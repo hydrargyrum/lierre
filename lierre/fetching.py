@@ -18,6 +18,7 @@ class Fetcher(QObject):
         self.thread.start()
 
     def _run(self):
+        LOGGER.info('running fetchers')
         for plugin in plugin_manager.PLUGINS['fetchers'].iter_enabled_plugins().values():
             LOGGER.info('running fetcher %r', plugin)
             try:
@@ -35,6 +36,14 @@ class Fetcher(QObject):
             LOGGER.exception('error while running notmuch-new: %s', exc)
         else:
             LOGGER.info('output is %s', output.decode('utf-8'))
+
+        LOGGER.info('running filters')
+        for plugin in plugin_manager.PLUGINS['filters'].iter_enabled_plugins().values():
+            LOGGER.info('running filter %r', plugin)
+            try:
+                plugin.run()
+            except Exception as exc:
+                LOGGER.exception('error while running filter %r: %s', plugin, exc)
 
         self.finished.emit()
         WATCHER.globalRefresh.emit()
