@@ -240,7 +240,6 @@ class TagsLabelWidget(QFrame):
             painter.eraseRect(ev.rect())
 
             painter.setClipRect(ev.rect())
-            painter.translate(ev.rect().topLeft())
 
             fm = QFontMetrics(self.font())  # TODO use style
 
