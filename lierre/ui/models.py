@@ -460,7 +460,7 @@ class TagsListModel(BasicListModel):
         self._updateObjs(new_objs)
 
     def _sort_key(self, d):
-        return d['tag']
+        return d['name']
 
 
 class ThreadListModel(BasicListModel):
