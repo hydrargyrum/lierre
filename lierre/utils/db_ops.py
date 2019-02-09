@@ -12,6 +12,11 @@ from PyQt5.QtCore import (
     QObject, QBasicTimer, pyqtSignal as Signal
 )
 from lierre.config import get_notmuch_config_path
+try:
+    from html2text import HTML2Text
+    HAS_HTML2TEXT = True
+except ImportError:
+    HAS_HTML2TEXT = False
 
 
 def get_thread_by_id(db, id):
@@ -101,6 +106,26 @@ class ExcerptBuilder(QObject):
         if not self.timer.isActive():
             self.timer.start(0, self)
 
+    def _getExcerptPlainText(self, pymessage):
+        body = pymessage.get_body(('plain',))
+
+        if body is not None:
+            text = body.get_content()
+            text = re.sub(r'^>.*$', '', text, flags=re.MULTILINE)
+            return text
+
+    def _getExcerptHtml(self, pymessage):
+        body = pymessage.get_body(('html',))
+
+        if body is not None:
+            text = body.get_content()
+            converter = HTML2Text()
+            converter.skip_internal_links = True
+            converter.unicode_snob = True
+            converter.ignore_tables = True
+            converter.ignore_images = True
+            return converter.handle(text)
+
     def timerEvent(self, ev):
         if ev.timerId() != self.timer.timerId():
             super(ExcerptBuilder, self).timerEvent(ev)
@@ -113,10 +138,18 @@ class ExcerptBuilder(QObject):
 
         with open(filename, 'rb') as fp:
             pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
-        text = pymessage.get_body('plain').get_content()
 
-        text = re.sub(r'^>.*$', '', text, flags=re.MULTILINE)
-        text = re.sub(r'\s+', ' ', text)[:100]
+        text = self._getExcerptPlainText(pymessage)
+        if text is None:
+            if HAS_HTML2TEXT:
+                text = self._getExcerptHtml(pymessage)
+            else:
+                return
+        if not text:
+            text = ''
+
+        text = re.sub(r'\s+', ' ', text)
+        text = text[:100]
 
         with open_db_rw() as db:
             message = db.find_message(message_id)
