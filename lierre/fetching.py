@@ -31,11 +31,11 @@ class Fetcher(QObject):
             output = subprocess.check_output(['notmuch', 'new'], stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as exc:
             LOGGER.error('notmuch-new returned status-code %s', exc.returncode)
-            LOGGER.error('output is %s', exc.output.decode('utf-8'))
+            LOGGER.error('output is %s', exc.output.decode('utf-8', errors='replace'))
         except Exception as exc:
             LOGGER.exception('error while running notmuch-new: %s', exc)
         else:
-            LOGGER.info('output is %s', output.decode('utf-8'))
+            LOGGER.info('output is %s', output.decode('utf-8', errors='replace'))
 
         LOGGER.info('running filters')
         for plugin in plugin_manager.PLUGINS['filters'].iter_enabled_plugins().values():
