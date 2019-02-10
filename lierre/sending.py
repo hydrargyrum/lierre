@@ -7,6 +7,7 @@ import mailbox
 from pathlib import Path
 
 from lierre.utils.db_ops import open_db_rw, get_db_path
+from lierre.change_watcher import WATCHER
 
 from .plugin_manager import PLUGINS
 from .config import CONFIG
@@ -52,3 +53,5 @@ def send_email(identity, msg):
     LOGGER.info('sent message saved to %r', msg_path)
     with open_db_rw() as db:
         db.add_message(msg_path)
+
+    WATCHER.mailAdded.emit(msg['Message-ID'][1:-1])

@@ -10,6 +10,7 @@ from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget
 from lierre.utils.db_ops import open_db, open_db_rw
 from lierre.sending import get_identities, send_email
+from lierre.change_watcher import WATCHER
 
 from . import compose_ui
 
@@ -120,5 +121,6 @@ class ComposeWidget(QWidget, compose_ui.Ui_Form):
             if self.reply_to:
                 replied_to = db.find_message(self.reply_to)
                 replied_to.add_tag('replied', True)
+                WATCHER.mailTagAdded('replied', self.reply_to)
 
     sent = Signal()

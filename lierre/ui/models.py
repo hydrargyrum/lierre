@@ -479,6 +479,7 @@ class ThreadListModel(BasicListModel):
         super(ThreadListModel, self).__init__(*args, **kwargs)
         self.query_text = None
         WATCHER.globalRefresh.connect(self.refresh)
+        WATCHER.mailAdded.connect(self.refresh)
 
     def setQuery(self, db, query_text):
         self.query_text = query_text

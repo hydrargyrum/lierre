@@ -43,6 +43,7 @@ class ChangeWatcher(QObject):
     globalRefresh = Signal()
     tagMailAdded = Signal(str, str)
     tagMailRemoved = Signal(str, str)
+    mailAdded = Signal(str)
 
 
 WATCHER = ChangeWatcher()
