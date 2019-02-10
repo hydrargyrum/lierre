@@ -350,7 +350,7 @@ class ThreadMessagesModel(BasicTreeModel):
 
 
 def tag_to_colors(tag):
-    bg = CONFIG.get('tag_colors', tag, fallback=None)
+    bg = CONFIG.get('ui', 'tag_colors', tag, default=None)
 
     if bg is not None:
         bg = QColor(bg)

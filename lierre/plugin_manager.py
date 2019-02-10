@@ -21,23 +21,21 @@ class PluginList:
         # TODO store disabled too?
         # or rather make 'enabled' a config key of the plugin?
 
-        enabled_sections = CONFIG.get('plugins', self.kind, fallback='')
-        enabled_sections = list(filter(None, enabled_sections.strip().split('\n')))
+        plugins = CONFIG.get('plugins', self.kind, default={})
 
-        for section in enabled_sections:
-            plugin_config = CONFIG['%s:%s' % (self.kind, section)]
+        for plugin_key, plugin_config in plugins.items():
             ep_name = plugin_config['ep_name']
             extension = EXTENSIONS_MANAGERS[self.kind][ep_name]
 
-            LOGGER.info('loading plugin %r from extension %r', section, extension)
+            LOGGER.info('loading plugin %r from extension %r', plugin_key, extension)
             try:
                 plugin = extension.plugin()
                 plugin.set_config(plugin_config)
             except Exception:
-                LOGGER.exception('failed to load plugin %r', section)
+                LOGGER.exception('failed to load plugin %r', plugin_key)
                 continue
 
-            self.plugins[section] = plugin
+            self.plugins[plugin_key] = plugin
 
     def iter_plugins(self):
         return EXTENSIONS_MANAGERS[self.kind]
@@ -48,21 +46,17 @@ class PluginList:
     def write_config(self):
         working_plugins = []
 
-        for name, plugin in self.plugins.items():
-            section = '%s:%s' % (self.kind, name)
-            if section not in CONFIG:
-                CONFIG.add_section(section)
-
+        for plugin_key, plugin in self.plugins.items():
             try:
                 plugin_config = plugin.get_config()
             except Exception:
-                LOGGER.exception('failed to fetch config from plugin %r', section)
+                LOGGER.exception('failed to fetch config from plugin %r', plugin_key)
                 continue
             # TODO ep_name and name should not be fetched from plugin
 
-            CONFIG[section].clear()
-            CONFIG[section].update(plugin_config)
-            working_plugins.append(name)
+            CONFIG.setdefault('plugins', {}).setdefault(self.kind, {})
+            CONFIG['plugins'][self.kind] = plugin_config
+            working_plugins.append(plugin_key)
 
         CONFIG['plugins'][self.kind] = working_plugins
 
