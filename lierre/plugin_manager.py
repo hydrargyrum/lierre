@@ -60,6 +60,9 @@ class PluginList:
 
         CONFIG['plugins'][self.kind] = working_plugins
 
+    def __getitem__(self, key):
+        return self.plugins[key]
+
 
 def init_plugins_from_config(plugin_kind):
     EXTENSIONS_MANAGERS[plugin_kind] = stevedore.ExtensionManager('lierre.plugins.%s' % plugin_kind)
@@ -69,3 +72,5 @@ def init_plugins_from_config(plugin_kind):
 def init():
     init_plugins_from_config('fetchers')
     init_plugins_from_config('filters')
+    init_plugins_from_config('senders')
+

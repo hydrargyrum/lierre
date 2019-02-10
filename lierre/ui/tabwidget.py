@@ -58,10 +58,18 @@ class TabWidget(QTabWidget):
     @Slot(str, bool)
     def addReply(self, mid, to_all):
         w = ComposeWidget(parent=self)
+        w.sent.connect(self._closeCompose)
         w.setReply(mid, to_all)
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
         return w
+
+    @Slot()
+    def _closeCompose(self):
+        w = self.sender()
+        idx = self.indexOf(w)
+        self.removeTab(idx)
+        w.deleteLater()
 
     @Slot(str)
     def addForward(self, mid):

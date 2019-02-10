@@ -51,6 +51,10 @@ def open_db_rw():
         gc.collect()
 
 
+def get_db_path():
+    return notmuch.Database()._get_user_default_db()
+
+
 class ExcerptBuilder(QObject):
     PROPERTY = 'x-lierre-excerpt'
 

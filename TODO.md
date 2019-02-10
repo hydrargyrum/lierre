@@ -39,9 +39,9 @@
 * reply to mail
 * forward mail
 * add attachments
+* cc and bcc fields
 
-* multiple identities (senders)
-* save sent mail
+* pre-fill quoted reply
 
 # mail operations
 
@@ -72,6 +72,7 @@
 
 * support JSON-LD for quick mail actions
 * look for external address book interaction
+    * and suggest frequently used together addresses
 * look for external calendar interaction
 
 # spam control

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Compose mail</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -57,14 +57,43 @@
     </layout>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="messageEdit">
-     <property name="placeholderText">
-      <string>Warning: this doesn't work yet.</string>
-     </property>
-    </widget>
+    <widget class="QPlainTextEdit" name="messageEdit"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="sendButton">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="text">
+        <string>&amp;Send</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>fromCombo</tabstop>
+  <tabstop>toEdit</tabstop>
+  <tabstop>subjectEdit</tabstop>
+  <tabstop>messageEdit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
