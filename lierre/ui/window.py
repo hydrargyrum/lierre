@@ -4,6 +4,7 @@ from PyQt5.QtCore import pyqtSlot as Slot
 from lierre.fetching import Fetcher
 
 from .window_ui import Ui_MainWindow
+from .options_conf import OptionsConf
 
 
 class Window(Ui_MainWindow, QMainWindow):
@@ -19,6 +20,8 @@ class Window(Ui_MainWindow, QMainWindow):
         self.actionRefresh.triggered.connect(self._startRefresh)
         self.fetcher = None
 
+        self.actionCfgMail.triggered.connect(self.openOptions)
+
     @Slot()
     def _tabChanged(self):
         self.setWindowTitle(self.tabWidget.currentWidget().windowTitle())
@@ -32,3 +35,8 @@ class Window(Ui_MainWindow, QMainWindow):
     @Slot()
     def _finishedRefresh(self):
         self.fetcher = None
+
+    @Slot()
+    def openOptions(self):
+        OptionsConf(parent=self).show()
+

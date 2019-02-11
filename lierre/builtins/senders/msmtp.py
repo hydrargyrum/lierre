@@ -3,11 +3,13 @@ import email.policy
 import logging
 from subprocess import Popen, PIPE, STDOUT
 
+from .base import Plugin
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-class MSmtpPlugin:
+class MSmtpPlugin(Plugin):
     def send(self, msg):
         cmd = ['msmtp', '--read-envelope-from', '--read-recipients']
 
