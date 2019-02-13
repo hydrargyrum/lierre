@@ -109,6 +109,8 @@
            <iconset theme="mail-attachment"/>
           </property>
          </widget>
+        </item>
+        <item>
          <widget class="QToolButton" name="toolButton">
           <property name="text">
            <string>...</string>
