@@ -13,8 +13,6 @@ from .compose import ComposeWidget
 class TabWidget(QTabWidget):
     def __init__(self, *args, **kwargs):
         super(TabWidget, self).__init__(*args, **kwargs)
-        self.setMovable(True)
-        self.setTabsClosable(True)
 
         self.tabCloseRequested.connect(self._closeTabRequested)
 
