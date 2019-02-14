@@ -123,7 +123,7 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
     @Slot()
     def _setMessagesTag(self):
         action = self.sender()
-        add = action.checked()
+        add = action.isChecked()
         tag = action.data()
 
         msg_ids = self._getSelectedMessages()
