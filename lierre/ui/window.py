@@ -24,7 +24,8 @@ class Window(Ui_MainWindow, QMainWindow):
 
     @Slot()
     def _tabChanged(self):
-        self.setWindowTitle(self.tabWidget.currentWidget().windowTitle())
+        tab_title = self.tabWidget.currentWidget().windowTitle()
+        self.setWindowTitle(self.tr('%s - Lierre') % tab_title)
 
     @Slot()
     def _startRefresh(self):
