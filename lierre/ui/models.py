@@ -3,6 +3,7 @@ from hashlib import sha1
 import json
 import logging
 from enum import IntFlag, auto as enum_auto
+import re
 
 from PyQt5.QtCore import (
     QModelIndex, QVariant, QAbstractItemModel, Qt, QMimeData, pyqtSlot as Slot,
@@ -350,7 +351,15 @@ class ThreadMessagesModel(BasicTreeModel):
 
 
 def tag_to_colors(tag):
-    bg = CONFIG.get('ui', 'tag_colors', tag, default=None)
+    ancestors = [tag[:match.start()] for match in re.finditer('/', tag)]
+    ancestors.append(tag)
+    ancestors.reverse()
+
+    bg = None
+    for ancestor in ancestors:
+        bg = CONFIG.get('ui', 'tag_colors', ancestor, default=None)
+        if bg is not None:
+            break
 
     if bg is not None:
         bg = QColor(bg)
