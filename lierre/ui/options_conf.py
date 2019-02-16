@@ -15,3 +15,5 @@ class OptionsConf(Ui_Dialog, QDialog):
         self.filtersConf.setPluginKind('filters')
         self.sendersConf.setPluginKind('senders')
 
+        for widget in (self.fetchersConf, self.filtersConf, self.sendersConf):
+            self.finished.connect(widget.updateConfig)

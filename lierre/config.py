@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import xdg.BaseDirectory as xbd
-import yaml
+import ruamel.yaml as yaml
 
 
 def read_config():
@@ -12,13 +12,13 @@ def read_config():
 
     with path.open() as fd:
         CONFIG.clear()
-        CONFIG.update(yaml.load(fd))
+        CONFIG.update(yaml.safe_load(fd))
 
 
 def write_config():
     path = Path(xbd.save_config_path('lierre')).joinpath('config')
     with path.open('w') as fd:
-        yaml.dump(CONFIG, fd)
+        yaml.dump(dict(CONFIG), fd, default_flow_style=False)
 
 
 class ConfigDict(dict):
