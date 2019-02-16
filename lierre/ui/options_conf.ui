@@ -92,6 +92,16 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabMisc">
+      <attribute name="title">
+       <string>Misc plugins</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="PluginsConf" name="miscConf" native="true"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>

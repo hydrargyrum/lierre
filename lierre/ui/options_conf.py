@@ -14,6 +14,7 @@ class OptionsConf(Ui_Dialog, QDialog):
         self.fetchersConf.setPluginKind('fetchers')
         self.filtersConf.setPluginKind('filters')
         self.sendersConf.setPluginKind('senders')
+        self.miscConf.setPluginKind('misc')
 
-        for widget in (self.fetchersConf, self.filtersConf, self.sendersConf):
+        for widget in (self.fetchersConf, self.filtersConf, self.sendersConf, self.miscConf):
             self.finished.connect(widget.updateConfig)
