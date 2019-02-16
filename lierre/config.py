@@ -32,5 +32,17 @@ class ConfigDict(dict):
         else:
             return d
 
+    def setdefault(self, *els):
+        els = list(els)
+        default = els.pop(-1)
+        last_key = els.pop(-1)
+
+        d = self
+        for k in els:
+            d = dict.setdefault(d, k, {})
+
+        dict.setdefault(d, last_key, default)
+        return d[last_key]
+
 
 CONFIG = ConfigDict()

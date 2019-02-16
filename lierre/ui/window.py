@@ -2,6 +2,7 @@
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import pyqtSlot as Slot
 from lierre.fetching import Fetcher
+from lierre.config import CONFIG
 
 from .window_ui import Ui_MainWindow
 from .options_conf import OptionsConf
@@ -40,4 +41,14 @@ class Window(Ui_MainWindow, QMainWindow):
     @Slot()
     def openOptions(self):
         OptionsConf(parent=self).show()
+
+    def show(self):
+        if CONFIG.get('ui', 'window', 'maximized', default=False):
+            self.showMaximized()
+        else:
+            super(Window, self).show()
+
+    def closeEvent(self, ev):
+        CONFIG.setdefault('ui', 'window', {})['maximized'] = self.isMaximized()
+        super(Window, self).closeEvent(ev)
 
