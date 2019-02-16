@@ -14,6 +14,7 @@ from lierre.ui import plain_message_ui
 from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
 from lierre.utils.db_ops import EXCERPT_BUILDER, open_db, get_thread_by_id
+from lierre.utils.date import short_datetime
 
 from .models import build_thread_tree, tag_to_colors
 
@@ -44,7 +45,7 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         self.message_filename = message.get_filename()
         self.fromLabel.setText(message.get_header('From'))
         self.toLabel.setText(message.get_header('To'))
-        self.dateLabel.setText(message.get_header('Date'))
+        self.dateLabel.setText(short_datetime(message.get_date()))
 
         idx = self.layout().indexOf(self.messageEdit)
         tags_widget = TagsLabelWidget(list(message.get_tags()), parent=self)
@@ -149,7 +150,7 @@ class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
         self.message_id = message.get_message_id()
         self.fromLabel.setText(message.get_header('From'))
         self.toLabel.setText(message.get_header('To'))
-        self.dateLabel.setText(message.get_header('Date'))
+        self.dateLabel.setText(short_datetime(message.get_date()))
         self.excerptLabel.setText(EXCERPT_BUILDER.getOrBuild(message.get_message_id()) or '')
 
         tags = set(message.get_tags())
