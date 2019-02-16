@@ -102,6 +102,8 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.searchLine.returnPressed.connect(self.doSearch)
         self.searchButton.clicked.connect(self.doSearch)
 
+        self.splitter.setStretchFactor(1, 1)
+
     def _openThread(self, qidx):
         tid = qidx.data(ThreadListModel.ThreadIdRole)
         self.threadActivated.emit(tid)

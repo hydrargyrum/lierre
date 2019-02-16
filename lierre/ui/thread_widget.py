@@ -44,6 +44,8 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
         super(ThreadWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
+        self.splitter.setStretchFactor(1, 1)
+
         self.setupToolbar()
 
         mdl = ThreadMessagesModel(thread_id)
