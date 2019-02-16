@@ -70,6 +70,9 @@ class PluginsConf(Ui_Form, QWidget):
 
     def _addPlugin(self):
         entrypoint_names = [ext.name for ext in self.plugins.iter_extensions()]
+        if not entrypoint_names:
+            return
+
         # TODO display better labels
         ep_name, ok = QInputDialog.getItem(self, self.tr('Plugin'), self.tr('Choose a plugin to configure'), entrypoint_names, 0, False)
         if not ok:
