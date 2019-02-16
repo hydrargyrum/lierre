@@ -22,6 +22,7 @@ class Window(Ui_MainWindow, QMainWindow):
         self.fetcher = None
 
         self.actionCfgMail.triggered.connect(self.openOptions)
+        self.actionCompose.triggered.connect(self.tabWidget.addCompose)
 
     @Slot()
     def _tabChanged(self):

@@ -63,6 +63,14 @@ class TabWidget(QTabWidget):
         return w
 
     @Slot()
+    def addCompose(self):
+        w = ComposeWidget(parent=self)
+        w.sent.connect(self._closeCompose)
+        idx = self._addTab(w)
+        self.setCurrentIndex(idx)
+        return w
+
+    @Slot()
     def _closeCompose(self):
         w = self.sender()
         idx = self.indexOf(w)

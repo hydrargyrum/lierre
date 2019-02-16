@@ -45,6 +45,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionRefresh"/>
+   <addaction name="actionCompose"/>
    <addaction name="separator"/>
    <addaction name="actionCfgMail"/>
   </widget>
@@ -74,6 +75,14 @@
    </property>
    <property name="text">
     <string>Mail...</string>
+   </property>
+  </action>
+  <action name="actionCompose">
+   <property name="icon">
+    <iconset theme="mail-message-new"/>
+   </property>
+   <property name="text">
+    <string>Compose a new message</string>
    </property>
   </action>
  </widget>
