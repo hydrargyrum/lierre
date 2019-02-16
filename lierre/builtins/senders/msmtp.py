@@ -28,4 +28,13 @@ class MSmtpPlugin(Plugin):
             raise Exception('msmtp exited with code %r' % proc.returncode)
 
     def set_config(self, config):
+        self.config = config
+
+    def get_config(self):
+        return self.config
+
+    def enable(self):
+        pass
+
+    def disable(self):
         pass

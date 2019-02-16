@@ -34,6 +34,7 @@ class PluginList:
         try:
             plugin = extension.plugin()
             plugin.set_config(plugin_config)
+            plugin.enable()
         except Exception:
             LOGGER.exception('failed to load plugin %r', plugin_key)
             return False
@@ -74,6 +75,12 @@ class PluginList:
         return self._load_plugin(name, config)
 
     def remove_plugin(self, name):
+        try:
+            self.plugins[name].disable()
+        except Exception:
+            LOGGER.exception('failed to disable plugin %r', name)
+            raise
+
         del self.plugins[name]
         try:
             del CONFIG['plugins'][self.kind][name]

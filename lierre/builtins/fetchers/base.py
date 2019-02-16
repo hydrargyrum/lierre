@@ -3,6 +3,12 @@ class Plugin:
     def __init__(self):
         pass
 
+    def enable(self):
+        pass
+
+    def disable(self):
+        pass
+
     def is_available(self):
         return True
 
