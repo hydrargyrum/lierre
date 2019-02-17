@@ -24,6 +24,8 @@ class ComposeWidget(QWidget, compose_ui.Ui_Form):
 
         self._updateIdentities()
 
+        self.ccToggle.setChecked(False)
+
     def _updateIdentities(self):
         identities = get_identities()
 
@@ -83,6 +85,8 @@ class ComposeWidget(QWidget, compose_ui.Ui_Form):
 
         self.subjectEdit.setText(info['Subject'])
         self.toEdit.setText(info.get('To', ''))
+        self.ccEdit.setText(info.get('Cc', ''))
+        self.ccToggle.setChecked(bool(self.ccEdit.text()))
 
     @Slot()
     def on_sendButton_clicked(self):
@@ -105,6 +109,8 @@ class ComposeWidget(QWidget, compose_ui.Ui_Form):
         msg['Date'] = localtime()
         msg['Subject'] = self.subjectEdit.text()
         msg['To'] = [Address(name, addr_spec=addr) for name, addr in getaddresses([self.toEdit.text()])]
+        msg['Cc'] = [Address(name, addr_spec=addr) for name, addr in getaddresses([self.ccEdit.text()])]
+        msg['Bcc'] = [Address(name, addr_spec=addr) for name, addr in getaddresses([self.bccEdit.text()])]
 
         if self.built_info:
             for header in ('In-reply-to', 'References'):
