@@ -1,4 +1,5 @@
 
+import email
 from email.message import EmailMessage
 from email.headerregistry import Address
 from email.utils import localtime, getaddresses
@@ -8,6 +9,7 @@ from subprocess import check_output
 
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget
+from lierre.mailutils.parsequote import Parser, indent_recursive, to_text
 from lierre.utils.db_ops import open_db, open_db_rw
 from lierre.sending import get_identities, send_email
 from lierre.change_watcher import WATCHER
@@ -87,6 +89,20 @@ class ComposeWidget(QWidget, compose_ui.Ui_Form):
         self.toEdit.setText(info.get('To', ''))
         self.ccEdit.setText(info.get('Cc', ''))
         self.ccToggle.setChecked(bool(self.ccEdit.text()))
+
+        with open_db() as db:
+            msg = db.find_message(msg_id)
+            with open(msg.get_filename(), 'rb') as fp:
+                pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
+
+        body = pymessage.get_body(('plain',))
+        if body is not None:
+            body = body.get_content()
+            parser = Parser()
+            parsed = parser.parse(body)
+            for block in parsed:
+                indent_recursive(block)
+            self.messageEdit.setPlainText(to_text(parsed))
 
     @Slot()
     def on_sendButton_clicked(self):

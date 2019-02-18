@@ -101,6 +101,33 @@ class Parser:
             current.append(b)
 
 
+def indent_recursive(block):
+    block.level += 1
+    if isinstance(block, Block):
+        block.level += 1
+        for sub in block.content:
+            indent_recursive(sub)
+
+
+def to_text(ls):
+    parts = []
+
+    def recurse(block):
+        if isinstance(block, Line):
+            if block.level:
+                parts.append(('>' * block.level) + ' ' + block.text)
+            else:
+                parts.append(block.text)
+        else:
+            for sub in block.content:
+                recurse(sub)
+
+    for block in ls:
+        recurse(block)
+
+    return '\n'.join(parts)
+
+
 if __name__ == '__main__':
     import pprint
     ret = Parser().parse('''
