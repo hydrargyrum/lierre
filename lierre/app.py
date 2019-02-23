@@ -9,6 +9,9 @@ from .config import read_config, write_config
 class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super(Application, self).__init__(*args, **kwargs)
+        self.setApplicationDisplayName(self.tr('Lierre'))
+        self.setApplicationName('Lierre')
+
         read_config()
         plugin_manager.init()
 
