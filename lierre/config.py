@@ -41,8 +41,30 @@ class ConfigDict(dict):
         for k in els:
             d = dict.setdefault(d, k, {})
 
-        dict.setdefault(d, last_key, default)
-        return d[last_key]
+        return dict.setdefault(d, last_key, default)
+
+    def set(self, *els):
+        els = list(els)
+        value = els.pop(-1)
+        last_key = els.pop(-1)
+
+        d = self.setdefault(*els, {})
+        d[last_key] = value
 
 
 CONFIG = ConfigDict()
+
+
+def test_config():
+    d = ConfigDict()
+    assert d.get('foo', 'bar') is None
+    assert d.get('foo', 'bar', default=1) == 1
+
+    assert d.setdefault('foo', 'bar', 2) == 2
+    assert d.get('foo', 'bar') == 2
+
+    assert d.setdefault('foo', 'bar', 3) == 2
+    assert d.get('foo', 'bar') == 2
+
+    d.set('foo', 'bar', 4)
+    assert d.get('foo', 'bar') == 4
