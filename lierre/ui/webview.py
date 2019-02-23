@@ -1,4 +1,5 @@
 
+import logging
 
 from PyQt5.QtCore import QSizeF, pyqtSlot as Slot, QBuffer, QByteArray
 from PyQt5.QtWebEngineCore import (
@@ -8,6 +9,9 @@ from PyQt5.QtWebEngineCore import (
 from PyQt5.QtWebEngineWidgets import (
     QWebEngineView, QWebEngineProfile, QWebEnginePage, QWebEngineSettings,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CidSchemeHandler(QWebEngineUrlSchemeHandler):
@@ -51,13 +55,18 @@ class Interceptor(QWebEngineUrlRequestInterceptor):
     )
 
     def interceptRequest(self, req):
-        if req.resourceType() not in self.accepted_types:
+        url = req.requestUrl().toString()
+        method = bytes(req.requestMethod()).decode('ascii')
+
+        if method != 'GET' or req.resourceType() not in self.accepted_types:
             req.block(True)
+            LOGGER.debug('blocked request %s %s (navigation: %s, resource: %s)', method, url, req.navigationType(), req.resourceType())
             return
 
-        url = req.requestUrl().toString()
-        if not url.startswith('data:'):
+        if not url.startswith('data:') and not url.startswith('cid:'):
             req.block(True)
+            LOGGER.debug('blocked request %s %s (navigation: %s, resource: %s)', method, url, req.navigationType(), req.resourceType())
+            return
 
 
 class WebView(QWebEngineView):
