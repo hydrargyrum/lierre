@@ -6,6 +6,7 @@ from PyQt5.QtCore import (
     pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize,
 )
 from lierre.utils.db_ops import open_db
+from lierre.config import CONFIG
 
 from .models import ThreadListModel, TagsListModel, MaildirFlags, tag_to_colors
 from .threads_widget_ui import Ui_Form
@@ -99,6 +100,11 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.threadsView.setItemDelegateForColumn(0, ThreadSubjectDelegate())
         self.threadsView.setDragEnabled(True)
 
+        for col, sz in enumerate(CONFIG.get('ui', 'threads_view', 'columns', default=[])):
+            self.threadsView.setColumnWidth(col, sz)
+
+        self.threadsView.header().sectionResized.connect(self._saveColumnSizes)
+
         self.searchLine.returnPressed.connect(self.doSearch)
         self.searchButton.clicked.connect(self.doSearch)
 
@@ -122,3 +128,9 @@ class ThreadsWidget(QWidget, Ui_Form):
         self.searchLine.setText(text)
         self.doSearch()
 
+    @Slot()
+    def _saveColumnSizes(self):
+        cols = []
+        CONFIG.set('ui', 'threads_view', 'columns', cols)
+        for col in range(self.threadsView.model().columnCount()):
+            cols.append(self.threadsView.columnWidth(col))
