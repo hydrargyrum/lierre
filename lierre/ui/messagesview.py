@@ -4,7 +4,7 @@ import email.policy
 import html
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFrame, QLabel, QMenu,
+    QWidget, QVBoxLayout, QFrame, QLabel, QMenu, QSizePolicy,
 )
 from PyQt5.QtGui import QIcon, QPainter, QFontMetrics
 from PyQt5.QtCore import (
@@ -258,6 +258,8 @@ class TagsLabelWidget(QFrame):
     def __init__(self, tags, *args, **kwargs):
         super(TagsLabelWidget, self).__init__(*args, **kwargs)
         self.tags = tags
+
+        self.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum, QSizePolicy.Label))
 
     def _positions(self, tags):
         fm = QFontMetrics(self.font())
