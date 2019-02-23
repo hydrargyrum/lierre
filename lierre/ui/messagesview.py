@@ -237,6 +237,14 @@ class MessagesView(QWidget):
             self._toggleMessageWidget(qmsg)
         # TODO scroll into view
 
+    @Slot(list)
+    def scrollToSelected(self, added):
+        if not added:
+            return
+
+        qmsg = self.widgets[added[-1]]
+        self.parent().parent().ensureWidgetVisible(qmsg)
+
     @Slot(list, list)
     def selectMessageChanged(self, added, removed):
         def changeWidth(l, width):

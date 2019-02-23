@@ -55,6 +55,7 @@ class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
         self.messagesView.setThread(thread_id)
         self.messagesTree.messageActivated.connect(self.messagesView.showMessage)
         self.messagesTree.messagesSelectionChanged.connect(self.messagesView.selectMessageChanged)
+        self.messagesTree.messagesSelectionChanged.connect(self.messagesView.scrollToSelected)
         self.messagesTree.messagesSelectionChanged.connect(self.updateToolbarState)
 
         self.messagesView.expanded.connect(self.messagesTree.selectMessage)
