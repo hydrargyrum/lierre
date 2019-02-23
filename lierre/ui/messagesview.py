@@ -72,6 +72,7 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
             return
 
         body = body.get_content()
+        self.messageEdit.setMessage(self.pymessage)
         self.messageEdit.setHtml(body)
 
     def _populate_body_plain(self):

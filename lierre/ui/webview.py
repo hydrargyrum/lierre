@@ -1,11 +1,46 @@
 
-from PyQt5.QtCore import QSizeF, pyqtSlot as Slot
+
+from PyQt5.QtCore import QSizeF, pyqtSlot as Slot, QBuffer, QByteArray
 from PyQt5.QtWebEngineCore import (
     QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo,
+    QWebEngineUrlSchemeHandler,
 )
 from PyQt5.QtWebEngineWidgets import (
     QWebEngineView, QWebEngineProfile, QWebEnginePage, QWebEngineSettings,
 )
+
+
+class CidSchemeHandler(QWebEngineUrlSchemeHandler):
+    def __init__(self, *args, **kwargs):
+        super(CidSchemeHandler, self).__init__(*args, **kwargs)
+        self.pymessage = None
+        self.parts = {}
+
+    def setMessage(self, pymessage):
+        self.pymessage = pymessage
+
+        self.parts = {}
+        for part in self.pymessage.iter_attachments():
+            cid = part.get('Content-ID')
+            if not cid:
+                continue
+
+            self.parts[cid[1:-1]] = part
+
+    def requestStarted(self, req):
+        if req.requestMethod() != b'GET':
+            return req.fail(req.RequestFailed)
+
+        path = req.requestUrl().path()
+        try:
+            part = self.parts[path]
+        except KeyError:
+            return req.fail(req.UrlNotFound)
+
+        qbuf = QBuffer(parent=req)
+        # XXX decode=True: decodes message ASCII to bytes
+        qbuf.setData(QByteArray(part.get_payload(decode=True)))
+        req.reply(part.get_content_type().encode('ascii'), qbuf)
 
 
 class Interceptor(QWebEngineUrlRequestInterceptor):
@@ -30,9 +65,11 @@ class WebView(QWebEngineView):
         super(WebView, self).__init__(*args, **kwargs)
 
         self.interceptor = Interceptor(self)
+        self.cid_handler = CidSchemeHandler(self)
 
         self.profile = QWebEngineProfile(self)
         self.profile.setRequestInterceptor(self.interceptor)
+        self.profile.installUrlSchemeHandler(b'cid', self.cid_handler)
 
         self.setPage(QWebEnginePage(self.profile, self))
         self.page().contentsSizeChanged.connect(self._pageSizeChanged)
@@ -49,3 +86,5 @@ class WebView(QWebEngineView):
     def minimumSizeHint(self):
         return self.page().contentsSize().toSize()
 
+    def setMessage(self, pymessage):
+        self.cid_handler.setMessage(pymessage)
