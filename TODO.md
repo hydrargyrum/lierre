@@ -8,11 +8,15 @@
     * auto move a thread in the same folder?
 
 * better default column sizes
-* remember columns sizes
 
 * context menu
 
 * allow creating tags
+
+* tags as tree instead of list
+    * folding stored in ui preferences
+
+* tags color config can be patterns
 
 # mail view
 
@@ -21,7 +25,6 @@
 * save/view attachments
 * xdg thumbnail for attachments?
 
-* display "cid:" resources
 * transform text links into real html links
 
 * better tags display/edit
@@ -34,22 +37,21 @@
 * IDLE imap to detect changes
     * use a plugin?
 
+* asynchronous fetching
+* progress info
+* lazy fetching, only fetch changed mailboxes
+
 # composing mail
 
-* reply to mail
 * forward mail
 * add attachments
-* cc and bcc fields
 
-* pre-fill quoted reply
+* asynchronous sending
 
 # mail operations
 
 * delete message
 * delete thread
-
-* add/remove tags
-* easy access to "star" tagging
 
 # encryption
 
@@ -68,6 +70,9 @@
 * propose default notmuch plugins for auto-tagging all messages in a thread, etc.
 * ui plugins
 
+* list view for conf stackedwidget
+* coloring tags
+
 # extra-mail interactions
 
 * support JSON-LD for quick mail actions
@@ -79,3 +84,9 @@
 
 * mark spam/ham
     * done by filter plugins?
+
+# setup
+
+* build *_ui.py files
+* app icon
+* manifest for source files list
