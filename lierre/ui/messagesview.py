@@ -200,7 +200,11 @@ class MessagesView(QWidget):
 
     def buildUi(self, message_list):
         for msg in message_list:
-            qmsg = CollapsedMessageWidget(msg)
+            if 'unread' in set(msg.get_tags()) or msg is message_list[-1]:
+                qmsg = PlainMessageWidget(msg)
+            else:
+                qmsg = CollapsedMessageWidget(msg)
+
             qmsg.toggle.connect(self._toggleMessage)
             self.layout().addWidget(qmsg)
             self.widgets[msg.get_message_id()] = qmsg
