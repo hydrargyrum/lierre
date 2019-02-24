@@ -2,6 +2,7 @@
 from PyQt5.QtCore import pyqtSlot as Slot
 from PyQt5.QtWidgets import QApplication
 
+from . import __version__
 from . import plugin_manager
 from .config import read_config, write_config
 
@@ -11,6 +12,7 @@ class Application(QApplication):
         super(Application, self).__init__(*args, **kwargs)
         self.setApplicationDisplayName(self.tr('Lierre'))
         self.setApplicationName('Lierre')
+        self.setApplicationVersion(__version__)
 
         read_config()
         plugin_manager.init()
