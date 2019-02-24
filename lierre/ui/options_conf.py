@@ -1,7 +1,10 @@
 
 from PyQt5.QtWidgets import QDialog
 
-from .options_conf_ui import Ui_Dialog
+from .ui_loader import load_ui_class
+
+
+Ui_Dialog = load_ui_class('options_conf', 'Ui_Dialog')
 
 
 class OptionsConf(Ui_Dialog, QDialog):

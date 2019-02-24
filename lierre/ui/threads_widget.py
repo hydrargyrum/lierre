@@ -9,7 +9,10 @@ from lierre.utils.db_ops import open_db
 from lierre.config import CONFIG
 
 from .models import ThreadListModel, TagsListModel, MaildirFlags, tag_to_colors
-from .threads_widget_ui import Ui_Form
+from .ui_loader import load_ui_class
+
+
+Ui_Form = load_ui_class('threads_widget', 'Ui_Form')
 
 
 class ThreadUnreadDelegate(QStyledItemDelegate):

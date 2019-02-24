@@ -4,8 +4,11 @@ from PyQt5.QtCore import pyqtSlot as Slot
 from lierre.fetching import Fetcher
 from lierre.config import CONFIG
 
-from .window_ui import Ui_MainWindow
+from .ui_loader import load_ui_class
 from .options_conf import OptionsConf
+
+
+Ui_MainWindow = load_ui_class('window', 'Ui_MainWindow')
 
 
 class Window(Ui_MainWindow, QMainWindow):

@@ -6,8 +6,11 @@ from PyQt5.QtWidgets import QWidget, QToolBar, QMenu
 from lierre.utils.db_ops import open_db, open_db_rw, UNTOUCHABLE_TAGS, get_thread_by_id
 from lierre.change_watcher import WATCHER
 
-from . import thread_widget_ui
+from .ui_loader import load_ui_class
 from .models import ThreadMessagesModel
+
+
+Ui_Form = load_ui_class('thread_widget', 'Ui_Form')
 
 
 def build_thread_tree(thread):
@@ -39,7 +42,7 @@ def flatten_depth_first(tree_dict):
     return ret
 
 
-class ThreadWidget(QWidget, thread_widget_ui.Ui_Form):
+class ThreadWidget(QWidget, Ui_Form):
     def __init__(self, thread_id, *args, **kwargs):
         super(ThreadWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)

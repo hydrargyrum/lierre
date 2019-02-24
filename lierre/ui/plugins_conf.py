@@ -7,7 +7,10 @@ from PyQt5.QtCore import (
 from PyQt5.QtWidgets import QListWidgetItem, QWidget, QInputDialog, QLineEdit
 from lierre.plugin_manager import PLUGINS
 
-from .plugins_conf_ui import Ui_Form
+from .ui_loader import load_ui_class
+
+
+Ui_Form = load_ui_class('plugins_conf', 'Ui_Form')
 
 
 class PluginsConf(Ui_Form, QWidget):

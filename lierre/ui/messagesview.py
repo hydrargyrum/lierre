@@ -17,6 +17,11 @@ from lierre.utils.db_ops import EXCERPT_BUILDER, open_db, get_thread_by_id
 from lierre.utils.date import short_datetime
 
 from .models import build_thread_tree, tag_to_colors
+from .ui_loader import load_ui_class
+
+
+PlainMessageUi_Frame = load_ui_class('plain_message', 'Ui_Frame')
+CollapsedMessageUi_Frame = load_ui_class('collapsed_message', 'Ui_Frame')
 
 
 def flatten_depth_first(tree_dict):
@@ -30,7 +35,7 @@ def flatten_depth_first(tree_dict):
     return ret
 
 
-class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
+class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
     def __init__(self, message, *args, **kwargs):
         super(PlainMessageWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
@@ -141,7 +146,7 @@ class PlainMessageWidget(QFrame, plain_message_ui.Ui_Frame):
         self._populate_body()
 
 
-class CollapsedMessageWidget(QFrame, collapsed_message_ui.Ui_Frame):
+class CollapsedMessageWidget(QFrame, CollapsedMessageUi_Frame):
     def __init__(self, message, *args, **kwargs):
         super(CollapsedMessageWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)

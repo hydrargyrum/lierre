@@ -14,10 +14,13 @@ from lierre.utils.db_ops import open_db, open_db_rw
 from lierre.sending import get_identities, send_email
 from lierre.change_watcher import WATCHER
 
-from . import compose_ui
+from .ui_loader import load_ui_class
 
 
-class ComposeWidget(QWidget, compose_ui.Ui_Form):
+Ui_Form = load_ui_class('compose', 'Ui_Form')
+
+
+class ComposeWidget(QWidget, Ui_Form):
     def __init__(self, *args, **kwargs):
         super(ComposeWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
