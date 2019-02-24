@@ -10,8 +10,6 @@ from PyQt5.QtGui import QIcon, QPainter, QFontMetrics
 from PyQt5.QtCore import (
     pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize,
 )
-from lierre.ui import plain_message_ui
-from lierre.ui import collapsed_message_ui
 from lierre.mailutils.parsequote import Parser, Line, Block
 from lierre.utils.db_ops import EXCERPT_BUILDER, open_db, get_thread_by_id
 from lierre.utils.date import short_datetime
