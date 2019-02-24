@@ -35,6 +35,13 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>&lt;b&gt;From:&lt;/b&gt;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="fromLabel">
           <property name="text">
            <string>&lt;From&gt;</string>
@@ -61,6 +68,13 @@
          </spacer>
         </item>
         <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Date:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="dateLabel">
           <property name="text">
            <string>&lt;date&gt;</string>
@@ -77,6 +91,13 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>&lt;b&gt;To:&lt;/b&gt;</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QLabel" name="toLabel">
           <property name="text">
