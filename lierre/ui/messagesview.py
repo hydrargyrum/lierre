@@ -8,11 +8,14 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QIcon, QPainter, QFontMetrics
 from PyQt5.QtCore import (
-    pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize,
+    pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize, QTimer,
 )
 from lierre.mailutils.parsequote import Parser, Line, Block
-from lierre.utils.db_ops import EXCERPT_BUILDER, open_db, get_thread_by_id
+from lierre.utils.db_ops import (
+    EXCERPT_BUILDER, open_db, open_db_rw, get_thread_by_id,
+)
 from lierre.utils.date import short_datetime
+from lierre.change_watcher import WATCHER
 
 from .models import build_thread_tree, tag_to_colors
 from .ui_loader import load_ui_class
@@ -34,6 +37,8 @@ def flatten_depth_first(tree_dict):
 
 
 class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
+    UNREAD_DELAY = 5000
+
     def __init__(self, message, *args, **kwargs):
         super(PlainMessageWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
@@ -60,6 +65,12 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         self.display_format = 'plain'
         self._populate_body()
         self._populate_attachments()
+
+        self.unread_timer = None
+        if 'unread' in set(message.get_tags()):
+            self.unread_timer = QTimer()
+            self.unread_timer.setSingleShot(True)
+            self.unread_timer.timeout.connect(self._mark_read)
 
     def _populate_body(self):
         if self.display_format == 'plain':
@@ -142,6 +153,21 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
     def on_actionChooseHTML_triggered(self):
         self.display_format = 'html'
         self._populate_body()
+
+    def paintEvent(self, ev):
+        super(PlainMessageWidget, self).paintEvent(ev)
+
+        if self.unread_timer and not self.unread_timer.isActive():
+            self.unread_timer.start(self.UNREAD_DELAY)
+
+    @Slot()
+    def _mark_read(self):
+        self.unread_timer = None
+        with open_db_rw() as db:
+            msg = db.find_message(self.message_id)
+            msg.remove_tag('unread', True)
+            self.message_filename = msg.get_filename()
+            WATCHER.tagMailRemoved.emit('unread', self.message_id)
 
 
 class CollapsedMessageWidget(QFrame, CollapsedMessageUi_Frame):
