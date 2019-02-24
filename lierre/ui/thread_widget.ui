@@ -130,12 +130,12 @@
   <customwidget>
    <class>MessagesTreeView</class>
    <extends>QTreeView</extends>
-   <header>.messagestreeview</header>
+   <header>lierre.ui.messagestreeview</header>
   </customwidget>
   <customwidget>
    <class>MessagesView</class>
    <extends>QWidget</extends>
-   <header>.messagesview</header>
+   <header>lierre.ui.messagesview</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

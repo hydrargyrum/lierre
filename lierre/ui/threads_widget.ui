@@ -94,7 +94,7 @@
   <customwidget>
    <class>TagsListView</class>
    <extends>QTreeView</extends>
-   <header>.tagslistview</header>
+   <header>lierre.ui.tagslistview</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -157,7 +157,7 @@
   <customwidget>
    <class>WebView</class>
    <extends>QTextEdit</extends>
-   <header>.webview</header>
+   <header>lierre.ui.webview</header>
   </customwidget>
  </customwidgets>
  <resources/>
