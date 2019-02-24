@@ -56,8 +56,8 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         self.dateLabel.setText(short_datetime(message.get_date()))
 
         idx = self.layout().indexOf(self.messageEdit)
-        tags_widget = TagsLabelWidget(list(message.get_tags()), parent=self)
-        self.layout().insertWidget(idx, tags_widget)
+        self.tags_widget = TagsLabelWidget(list(message.get_tags()), parent=self)
+        self.layout().insertWidget(idx, self.tags_widget)
 
         with open(self.message_filename, 'rb') as fp:
             self.pymessage = email.message_from_binary_file(fp, policy=email.policy.default)
@@ -71,6 +71,9 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             self.unread_timer = QTimer()
             self.unread_timer.setSingleShot(True)
             self.unread_timer.timeout.connect(self._mark_read)
+
+        WATCHER.tagMailAdded.connect(self._addedTag)
+        WATCHER.tagMailRemoved.connect(self._removedTag)
 
     def _populate_body(self):
         if self.display_format == 'plain':
@@ -168,6 +171,18 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             msg.remove_tag('unread', True)
             self.message_filename = msg.get_filename()
             WATCHER.tagMailRemoved.emit('unread', self.message_id)
+
+    @Slot(str, str)
+    def _addedTag(self, tag, msg_id):
+        if self.message_id == msg_id:
+            self.tags_widget.tags.append(tag)
+            self.tags_widget.update()
+
+    @Slot(str, str)
+    def _removedTag(self, tag, msg_id):
+        if self.message_id == msg_id:
+            self.tags_widget.tags.remove(tag)
+            self.tags_widget.update()
 
 
 class CollapsedMessageWidget(QFrame, CollapsedMessageUi_Frame):
