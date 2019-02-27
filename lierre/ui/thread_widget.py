@@ -8,6 +8,7 @@ from lierre.change_watcher import WATCHER
 
 from .ui_loader import load_ui_class
 from .models import ThreadMessagesModel
+from .tag_editor import TagEditor
 
 
 Ui_Form = load_ui_class('thread_widget', 'Ui_Form')
@@ -83,6 +84,7 @@ class ThreadWidget(QWidget, Ui_Form):
         self.actionFlagMessage.triggered.connect(self._flagMessages)
 
         tb.addAction(self.actionTagMessage)
+        self.actionTagMessage.triggered.connect(self.openTagEditor)
 
         tagMenu = QMenu('Tags')
         tagMenu.aboutToShow.connect(self._prepareTagMenu)
@@ -194,3 +196,43 @@ class ThreadWidget(QWidget, Ui_Form):
 
     triggeredReply = Signal(str, bool)
     triggeredForward = Signal(str)
+
+    @Slot()
+    def openTagEditor(self):
+        selected = self._getSelectedMessages()
+        assert selected
+
+        w = TagEditor(parent=self)
+        with open_db() as db:
+            msgs = [db.find_message(msg_id) for msg_id in selected]
+            common_tags = reduce(set.__and__, (set(msg.get_tags()) for msg in msgs), set(msgs[0].get_tags()))
+            union_tags = reduce(set.__or__, (set(msg.get_tags()) for msg in msgs), set())
+            union_tags -= common_tags
+
+            w.setCheckedTags(common_tags, union_tags)
+
+        if not w.exec_():
+            return
+
+        with open_db_rw() as db:
+            msgs = [db.find_message(sel) for sel in selected]
+            checked, partially = w.checkedTags()
+
+            db.begin_atomic()
+            for msg in msgs:
+                msg_tags = set(msg.get_tags())
+
+                for tag in (msg_tags - checked):  # unchecked tags
+                    if tag in partially:
+                        continue
+                    msg.remove_tag(tag)
+                    WATCHER.tagMailRemoved.emit(tag, msg.get_message_id())
+
+                for tag in (checked - msg_tags):  # newly checked tags
+                    msg.add_tag(tag)
+                    WATCHER.tagMailAdded.emit(tag, msg.get_message_id())
+
+            db.end_atomic()
+
+            for msg in msgs:
+                msg.tags_to_maildir_flags()

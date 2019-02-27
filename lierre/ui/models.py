@@ -1,4 +1,5 @@
 
+from copy import deepcopy
 from hashlib import sha1
 import json
 import logging
@@ -379,7 +380,7 @@ def _fg_from_bg_color(qcolor):
 
 class TagsListModel(BasicListModel):
     columns = (
-        ('Name', 'name'),
+        ('Name', 'display_name'),
         ('Unread', 'unread_text'),
     )
 
@@ -406,6 +407,9 @@ class TagsListModel(BasicListModel):
 
     def _get_name(self, item):
         return QVariant(item['name'])
+
+    def _get_display_name(self, item):
+        return QVariant(item.get('display_name') or item['name'])
 
     def _get_unread_text(self, item):
         text = str(item['unread']) if item['unread'] else ''
@@ -470,6 +474,79 @@ class TagsListModel(BasicListModel):
 
     def _sort_key(self, d):
         return d['name']
+
+
+class CheckableTagsListModel(TagsListModel):
+    def __init__(self, db, *args, **kwargs):
+        super(CheckableTagsListModel, self).__init__(db, *args, **kwargs)
+        self.checked = {}
+
+    def get_checked(self):
+        checked = set(tag for tag in self.checked if self.checked[tag] == Qt.Checked)
+        semi = set(tag for tag in self.checked if self.checked[tag] == Qt.PartiallyChecked)
+        return checked, semi
+
+    def set_checked(self, new, semi=()):
+        self.checked.clear()
+        self.checked.update((t, Qt.Checked) for t in new)
+        self.checked.update((t, Qt.PartiallyChecked) for t in semi)
+
+        self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, 0), [Qt.CheckStateRole])
+
+    def flags(self, qidx):
+        flags = super(CheckableTagsListModel, self).flags(qidx)
+        if flags & Qt.ItemIsEnabled:
+            flags |= Qt.ItemIsUserCheckable
+
+        return flags
+
+    def data(self, qidx, role=Qt.DisplayRole):
+        if role != Qt.CheckStateRole:
+            return super(CheckableTagsListModel, self).data(qidx, role)
+
+        item = qidx.internalPointer()
+        if item is None:
+            return QVariant()
+
+        return QVariant(self.checked.get(item['name'], Qt.Unchecked))
+
+    def setData(self, qidx, value, role):
+        item = qidx.internalPointer()
+        if item is None or role != Qt.CheckStateRole:
+            return False
+
+        item.pop('_gap', None)
+        self.checked[item['name']] = value
+
+        self.dataChanged.emit(qidx, qidx, [role])
+        return True
+
+    @Slot(str)
+    def setNewTagItem(self, tag):
+        def to_label():
+            return self.tr('New tag: %s') % tag
+
+        new = deepcopy(self.objs)
+
+        if tag in set(obj['name'] for obj in self.objs):
+            tag = ''
+
+        if new and new[-1].get('_gap'):
+            if tag:
+                new[-1]['display_name'] = to_label()
+                new[-1]['name'] = tag
+                new[-1]['_gap'] = tag
+            else:
+                del new[-1]
+        else:
+            if tag:
+                new.append({
+                    'display_name': to_label(),
+                    'unread': 0,
+                    'name': tag,
+                    '_gap': True,
+                })
+        self._updateObjs(new)
 
 
 class ThreadListModel(BasicListModel):
