@@ -214,25 +214,28 @@ class ThreadWidget(QWidget, Ui_Form):
         if not w.exec_():
             return
 
+        checked, partially = w.checkedTags()
+
         with open_db_rw() as db:
             msgs = [db.find_message(sel) for sel in selected]
-            checked, partially = w.checkedTags()
 
-            db.begin_atomic()
             for msg in msgs:
                 msg_tags = set(msg.get_tags())
+                to_remove = msg_tags - (checked | partially)  # unchecked tags
+                to_add = checked - msg_tags  # newly checked tags
 
-                for tag in (msg_tags - checked):  # unchecked tags
-                    if tag in partially:
-                        continue
+                msg.freeze()
+
+                for tag in to_remove:
                     msg.remove_tag(tag)
-                    WATCHER.tagMailRemoved.emit(tag, msg.get_message_id())
-
-                for tag in (checked - msg_tags):  # newly checked tags
+                for tag in to_add:
                     msg.add_tag(tag)
+
+                msg.thaw()
+                msg.tags_to_maildir_flags()
+
+                for tag in to_remove:
+                    WATCHER.tagMailRemoved.emit(tag, msg.get_message_id())
+                for tag in to_add:
                     WATCHER.tagMailAdded.emit(tag, msg.get_message_id())
 
-            db.end_atomic()
-
-            for msg in msgs:
-                msg.tags_to_maildir_flags()
