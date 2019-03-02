@@ -72,8 +72,8 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             self.unread_timer.setSingleShot(True)
             self.unread_timer.timeout.connect(self._mark_read)
 
-        WATCHER.tagMailAdded.connect(self._addedTag)
-        WATCHER.tagMailRemoved.connect(self._removedTag)
+        WATCHER.tagMailAdded.connect(self._addedTag, Qt.QueuedConnection)
+        WATCHER.tagMailRemoved.connect(self._removedTag, Qt.QueuedConnection)
 
     def _populate_body(self):
         if self.display_format == 'plain':

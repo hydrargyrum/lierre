@@ -389,9 +389,9 @@ class TagsListModel(BasicListModel):
         objs = self._build_objs(db)
         self._setObjs(objs)
 
-        WATCHER.globalRefresh.connect(self.refresh)
-        WATCHER.tagMailAdded.connect(self.refresh)
-        WATCHER.tagMailRemoved.connect(self.refresh)
+        WATCHER.globalRefresh.connect(self.refresh, Qt.QueuedConnection)
+        WATCHER.tagMailAdded.connect(self.refresh, Qt.QueuedConnection)
+        WATCHER.tagMailRemoved.connect(self.refresh, Qt.QueuedConnection)
 
     def _build_objs(self, db):
         return [
@@ -564,8 +564,8 @@ class ThreadListModel(BasicListModel):
     def __init__(self, *args, **kwargs):
         super(ThreadListModel, self).__init__(*args, **kwargs)
         self.query_text = None
-        WATCHER.globalRefresh.connect(self.refresh)
-        WATCHER.mailAdded.connect(self.refresh)
+        WATCHER.globalRefresh.connect(self.refresh, Qt.QueuedConnection)
+        WATCHER.mailAdded.connect(self.refresh, Qt.QueuedConnection)
 
     def setQuery(self, db, query_text):
         self.query_text = query_text
