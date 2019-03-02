@@ -146,6 +146,6 @@ class ComposeWidget(QWidget, Ui_Form):
             if self.reply_to:
                 replied_to = db.find_message(self.reply_to)
                 replied_to.add_tag('replied', True)
-                WATCHER.tagMailAdded('replied', self.reply_to)
+                WATCHER.tagMailAdded.emit('replied', self.reply_to)
 
     sent = Signal()
