@@ -11,8 +11,6 @@
 
 * context menu
 
-* allow creating tags
-
 * tags as tree instead of list
     * folding stored in ui preferences
 
@@ -46,6 +44,9 @@
 * forward mail
 * add attachments
 
+* save to drafts
+* resume draft
+
 * asynchronous sending
 
 # mail operations
@@ -69,9 +70,12 @@
 
 * propose default notmuch plugins for auto-tagging all messages in a thread, etc.
 * ui plugins
+* have always-loaded plugins like ui plugins?
 
 * list view for conf stackedwidget
 * coloring tags
+
+* be more resistant to config errors
 
 # extra-mail interactions
 
@@ -87,6 +91,11 @@
 
 # setup
 
-* build *_ui.py files
 * app icon
-* manifest for source files list
+
+# help
+
+* first-run wizard
+* supports creating a notmuch db
+* autodetect exising mbsync/msmtp/etc. configs and propose to auto-load plugins for them
+
