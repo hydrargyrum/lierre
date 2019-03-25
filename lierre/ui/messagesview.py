@@ -134,14 +134,15 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
                 assert isinstance(item, Block)
 
                 if item.level:
-                    full_html.append('  ' * item.level)
                     full_html.append('<blockquote>\n')
+                    full_html.append('<details open="open">\n')
+                    full_html.append('<summary>Quote</summary>\n')
 
                 for sub in item.content:
                     _populate_rec(sub)
 
                 if item.level:
-                    full_html.append('  ' * item.level)
+                    full_html.append('</details>\n')
                     full_html.append('</blockquote>\n')
 
         for item in parsed:
