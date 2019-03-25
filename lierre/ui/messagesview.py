@@ -2,6 +2,7 @@
 import email
 import email.policy
 import html
+import re
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QFrame, QLabel, QMenu, QSizePolicy,
@@ -92,6 +93,26 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         self.messageEdit.setMessage(self.pymessage)
         self.messageEdit.setHtml(body)
 
+    def _line_to_html(self, line):
+        line_html = html.escape(line)
+
+        def to_nbsp(mtc):
+            return '&nbsp;' * len(mtc.group())
+
+        line_html = re.sub(r'\s{2,}', to_nbsp, line_html)
+
+        def to_link(mtc):
+            html_url = mtc.group()
+            url = html.unescape(html_url)
+            return '<a href="{0}">{0}</a>'.format(url)
+
+        uri_chars = "][(),'!*$a-z@.A-Z:0-9/~;?+&=%#-"
+        last_char = "a-zA-Z0-9/+=#"  # TODO last char of uri should preferably be one of those
+        line_html = re.sub('https?://[%s]+' % uri_chars, to_link, line_html)
+
+        # TODO handle multiline (can't be done in this function)
+        return line_html
+
     def _populate_body_plain(self):
         body = self.pymessage.get_body(('plain',))
         if body is None:
@@ -107,7 +128,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         def _populate_rec(item):
             if isinstance(item, Line):
                 full_html.append('  ' * item.level)
-                full_html.append(html.escape(item.text))
+                full_html.append(self._line_to_html(item.text))
                 full_html.append('<br/>')
             else:
                 assert isinstance(item, Block)
