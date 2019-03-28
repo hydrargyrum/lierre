@@ -1,8 +1,16 @@
 
-class Plugin:
-    def __init__(self):
-        pass
+from PyQt5.QtCore import QObject, pyqtSignal as Signal
 
+
+class Job(QObject):
+    progress = Signal(int)
+    finished = Signal(int)
+
+    def start(self):
+        raise NotImplementedError()
+
+
+class Plugin(QObject):
     def enable(self):
         pass
 
@@ -21,5 +29,5 @@ class Plugin:
     def build_config_form(self):
         pass
 
-    def run(self):
-        raise NotImplementedError()
+    def create_job(self, **kwargs):
+        pass
