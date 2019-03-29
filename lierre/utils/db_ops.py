@@ -1,4 +1,5 @@
 
+from configparser import ConfigParser
 from collections import deque
 from contextlib import contextmanager
 import email
@@ -7,10 +8,10 @@ import gc
 import re
 
 import notmuch
-
 from PyQt5.QtCore import (
     QObject, QBasicTimer, pyqtSignal as Signal
 )
+from lierre.config import get_notmuch_config_path
 
 
 def get_thread_by_id(db, id):
@@ -30,10 +31,30 @@ def iter_thread_messages(thread):
         yield from _iter(msg)
 
 
+class Database(notmuch.Database):
+    @staticmethod
+    def _get_excluded_tags():
+        try:
+            with open(get_notmuch_config_path()) as fd:
+                cfg = ConfigParser(interpolation=None)
+                cfg.read_file(fd)
+                return list(filter(None, cfg.get('search', 'exclude_tags', fallback='').split(';')))
+        except OSError:
+            return []
+
+    def create_query(self, querystring):
+        query = super(Database, self).create_query(querystring)
+
+        for tag in self._get_excluded_tags():
+            query.exclude_tag(tag)
+
+        return query
+
+
 @contextmanager
 def open_db():
     try:
-        with notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY) as db:
+        with Database(mode=notmuch.Database.MODE.READ_ONLY) as db:
             yield db
     finally:
         # WTF: collecting now makes python to free Thread then Threads.
@@ -45,7 +66,7 @@ def open_db():
 @contextmanager
 def open_db_rw():
     try:
-        with notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE) as db:
+        with Database(mode=notmuch.Database.MODE.READ_WRITE) as db:
             yield db
     finally:
         gc.collect()

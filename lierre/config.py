@@ -1,4 +1,5 @@
 
+import os
 from pathlib import Path
 
 import xdg.BaseDirectory as xbd
@@ -53,6 +54,10 @@ class ConfigDict(dict):
 
 
 CONFIG = ConfigDict()
+
+
+def get_notmuch_config_path():
+    return os.environ.get('NOTMUCH_CONFIG', str(Path.home().joinpath('.notmuch-config')))
 
 
 def test_config():
