@@ -70,6 +70,9 @@
    <property name="text">
     <string>Tags...</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+T</string>
+   </property>
   </action>
   <action name="actionFlagMessage">
    <property name="icon">
@@ -97,6 +100,9 @@
    <property name="text">
     <string>Reply to all</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
   </action>
   <action name="actionForward">
    <property name="icon">
@@ -123,6 +129,9 @@
    </property>
    <property name="text">
     <string>Reply to sender</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
    </property>
   </action>
  </widget>
