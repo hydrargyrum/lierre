@@ -85,6 +85,9 @@ class WebView(QWebEngineView):
 
         self._restrict()
 
+        # warning: the signal is emitted with an empty string if the link isn't hovered anymore
+        self.page().linkHovered.connect(self.window().statusBar().showMessage)
+
     def _restrict(self):
         self.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, False)
 
