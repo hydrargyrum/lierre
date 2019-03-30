@@ -17,7 +17,7 @@ from lierre.config import get_notmuch_config_path
 def get_thread_by_id(db, id):
     q = db.create_query('thread:%s' % id)
     it = q.search_threads()
-    thr = list(it)[0]
+    thr = next(iter(it), None)
     return thr
 
 
