@@ -16,6 +16,8 @@ from lierre.config import get_notmuch_config_path
 
 def get_thread_by_id(db, id):
     q = db.create_query('thread:%s' % id)
+    q.set_omit_excluded(q.EXCLUDE.FALSE)
+
     it = q.search_threads()
     thr = next(iter(it), None)
     return thr
