@@ -106,7 +106,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             url = html.unescape(html_url)
             return '<a href="{0}">{0}</a>'.format(url)
 
-        uri_chars = "][(),'!*$a-z@.A-Z:0-9/~;?+&=%#-"
+        uri_chars = "][(),'!*$_a-z@.A-Z:0-9/~;?+&=%#-"
         last_char = "a-zA-Z0-9/+=#"  # TODO last char of uri should preferably be one of those
         line_html = re.sub('https?://[%s]+' % uri_chars, to_link, line_html)
 
