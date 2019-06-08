@@ -1,6 +1,11 @@
 
+import os.path
+import sys
+
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot as Slot
+import xdg.BaseDirectory as xbd
 from lierre.fetching import Fetcher
 from lierre.config import CONFIG
 

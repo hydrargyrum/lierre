@@ -1,0 +1,22 @@
+[Desktop Entry]
+Version=1.0
+
+Name=Lierre mail app
+Name[fr]=Application mail Lierre
+
+Comment=Read/Write Mail with Lierre
+Comment[fr]=Lire et écrire des mails avec Lierre
+
+GenericName=Mail Client
+GenericName[fr]=Client de messagerie
+
+Categories=Network;Email;News;Qt;
+Keywords=EMail;E-mail;Contact;Addressbook;
+
+Icon=lierre
+Type=Application
+Exec=lierre
+Terminal=false
+#MimeType=text/plain;text/x-python;text/x-c++;
+StartupWMClass=Lierre
+
