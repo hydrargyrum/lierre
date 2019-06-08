@@ -1,4 +1,5 @@
 
+import logging
 
 from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, QStyle, QToolBar
 from PyQt5.QtGui import QFontMetrics, QPen
@@ -12,6 +13,9 @@ from lierre.change_watcher import WATCHER
 from .models import ThreadListModel, TagsListModel, MaildirFlags, tag_to_colors
 from .tag_editor import TagEditor
 from .ui_loader import load_ui_class
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 Ui_Form = load_ui_class('threads_widget', 'Ui_Form')
@@ -196,6 +200,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         with open_db_rw() as db:
             for thread in self._iter_selected_threads(db):
                 for msg in iter_thread_messages(thread):
+                    LOGGER.debug('marking message deleted %r', msg.get_message_id())
                     msg.add_tag('deleted', True)
                     WATCHER.tagMailAdded.emit('deleted', msg.get_message_id())
 
@@ -204,6 +209,7 @@ class ThreadsWidget(QWidget, Ui_Form):
         with open_db_rw() as db:
             for thread in self._iter_selected_threads(db):
                 for msg in iter_thread_messages(thread):
+                    LOGGER.debug('archiving message %r', msg.get_message_id())
                     msg.remove_tag('inbox')
                     WATCHER.tagMailRemoved.emit('inbox', msg.get_message_id())
 
@@ -238,6 +244,7 @@ class ThreadsWidget(QWidget, Ui_Form):
                     to_remove = msg_tags - (checked | partially)  # unchecked tags
                     to_add = checked - msg_tags  # newly checked tags
 
+                    LOGGER.debug('changing tags for message %r: +(%s) -(%s)', msg.get_message_id(), to_add, to_remove)
                     msg.freeze()
 
                     for tag in to_remove:
@@ -247,6 +254,7 @@ class ThreadsWidget(QWidget, Ui_Form):
 
                     msg.thaw()
                     msg.tags_to_maildir_flags()
+                    LOGGER.debug('changed tags for message %r', msg.get_message_id())
 
                     for tag in to_remove:
                         WATCHER.tagMailRemoved.emit(tag, msg.get_message_id())
