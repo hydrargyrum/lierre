@@ -91,6 +91,9 @@
    <property name="text">
     <string>Delete message</string>
    </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
   </action>
   <action name="actionReplyToAll">
    <property name="icon">
