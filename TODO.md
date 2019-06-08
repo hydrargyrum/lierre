@@ -23,10 +23,7 @@
 * save/view attachments
 * xdg thumbnail for attachments?
 
-* transform text links into real html links
-
 * better tags display/edit
-* allow creating tags
 
 # sync
 
@@ -73,7 +70,6 @@
 * have always-loaded plugins like ui plugins?
 
 * list view for conf stackedwidget
-* coloring tags
 
 * be more resistant to config errors
 
@@ -88,10 +84,6 @@
 
 * mark spam/ham
     * done by filter plugins?
-
-# setup
-
-* app icon
 
 # help
 
