@@ -201,7 +201,7 @@ class ThreadsWidget(QWidget, Ui_Form):
             for thread in self._iter_selected_threads(db):
                 for msg in iter_thread_messages(thread):
                     LOGGER.debug('marking message deleted %r', msg.get_message_id())
-                    msg.add_tag('deleted', True)
+                    msg.add_tag('deleted')
                     WATCHER.tagMailAdded.emit('deleted', msg.get_message_id())
 
     @Slot()
