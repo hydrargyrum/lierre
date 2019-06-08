@@ -41,6 +41,7 @@ class TabWidget(QTabWidget):
         self.setCurrentIndex(idx)
         return w
 
+    @Slot(str)
     def _addThreadsTag(self, tag):
         w = self.addThreads()
         w.setQueryAndSearch('tag:%s' % tag)
@@ -95,6 +96,11 @@ class TabWidget(QTabWidget):
     def closeCurrentTab(self):
         if self.count() > 1:
             self.removeTab(self.currentIndex())
+
+    def removeTab(self, idx):
+        w = self.widget(idx)
+        super(TabWidget, self).removeTab(idx)
+        w.setParent(None)
 
     @Slot()
     def moveToNextTab(self):
