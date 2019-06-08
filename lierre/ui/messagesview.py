@@ -125,7 +125,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
 
         full_html = []
 
-        def _populate_rec(item):
+        def _populate_rec_webengine(item):
             if isinstance(item, Line):
                 full_html.append('  ' * item.level)
                 full_html.append(self._line_to_html(item.text))
@@ -145,8 +145,31 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
                     full_html.append('</details>\n')
                     full_html.append('</blockquote>\n')
 
+        def _populate_rec_qtextbrowser(item):
+            if isinstance(item, Line):
+                full_html.append('  ' * item.level)
+                full_html.append(self._line_to_html(item.text))
+                full_html.append('<br/>')
+            else:
+                assert isinstance(item, Block)
+
+                if item.level:
+                    full_html.append('</p>\n')
+                    full_html.append('<blockquote>\n')
+                    full_html.append('<p>\n')
+
+                for sub in item.content:
+                    _populate_rec_qtextbrowser(sub)
+
+                if item.level:
+                    full_html.append('</p>\n')
+                    full_html.append('</blockquote>\n')
+                    full_html.append('<p>\n')
+
+        full_html.append('<p>\n')
         for item in parsed:
-            _populate_rec(item)
+            _populate_rec_qtextbrowser(item)
+        full_html.append('</p>\n')
 
         self.messageEdit.setHtml(''.join(full_html))
 
