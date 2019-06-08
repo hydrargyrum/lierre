@@ -203,8 +203,12 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
     @Slot(str, str)
     def _removedTag(self, tag, msg_id):
         if self.message_id == msg_id:
-            self.tags_widget.tags.remove(tag)
-            self.tags_widget.update()
+            try:
+                self.tags_widget.tags.remove(tag)
+            except ValueError:  # tag wasn't present
+                pass
+            else:
+                self.tags_widget.update()
 
 
 class CollapsedMessageWidget(QFrame, CollapsedMessageUi_Frame):
