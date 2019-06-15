@@ -19,7 +19,10 @@
      <item row="0" column="0">
       <widget class="QLabel" name="fromLabel">
        <property name="text">
-        <string>From</string>
+        <string>&amp;From</string>
+       </property>
+       <property name="buddy">
+        <cstring>fromCombo</cstring>
        </property>
       </widget>
      </item>
@@ -29,7 +32,10 @@
      <item row="1" column="0">
       <widget class="QLabel" name="toLabel">
        <property name="text">
-        <string>To</string>
+        <string>&amp;To</string>
+       </property>
+       <property name="buddy">
+        <cstring>toEdit</cstring>
        </property>
       </widget>
      </item>
@@ -63,7 +69,10 @@
      <item row="2" column="0">
       <widget class="QLabel" name="ccLabel">
        <property name="text">
-        <string>CC</string>
+        <string>&amp;CC</string>
+       </property>
+       <property name="buddy">
+        <cstring>ccEdit</cstring>
        </property>
       </widget>
      </item>
@@ -77,7 +86,10 @@
      <item row="3" column="0">
       <widget class="QLabel" name="bccLabel">
        <property name="text">
-        <string>BCC</string>
+        <string>&amp;BCC</string>
+       </property>
+       <property name="buddy">
+        <cstring>bccEdit</cstring>
        </property>
       </widget>
      </item>
@@ -91,7 +103,10 @@
      <item row="4" column="0">
       <widget class="QLabel" name="subjectLabel">
        <property name="text">
-        <string>Subject</string>
+        <string>&amp;Subject</string>
+       </property>
+       <property name="buddy">
+        <cstring>subjectEdit</cstring>
        </property>
       </widget>
      </item>
@@ -128,7 +143,10 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="text">
-        <string>&amp;Send</string>
+        <string>Send</string>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+Return</string>
        </property>
       </widget>
      </item>
