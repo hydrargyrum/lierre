@@ -2,14 +2,15 @@
 import email
 import email.policy
 import html
+from pathlib import Path
 import re
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QFrame, QLabel, QMenu, QSizePolicy,
+    QWidget, QVBoxLayout, QFrame, QLabel, QMenu, QSizePolicy, QFileDialog,
 )
 from PyQt5.QtGui import QIcon, QPainter, QFontMetrics
 from PyQt5.QtCore import (
-    pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize, QTimer,
+    pyqtSignal as Signal, pyqtSlot as Slot, Qt, QSize, QTimer, QStandardPaths,
 )
 from lierre.mailutils.parsequote import Parser, Line, Block
 from lierre.utils.db_ops import (
@@ -178,9 +179,30 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         for n, attachment in enumerate(self.pymessage.iter_attachments()):
             has_attach = True
             action = self.attachmentsButton.menu().addAction(attachment.get_filename())
+            action.triggered.connect(self._saveAttachment)
             action.setData(n)
 
         self.attachmentsButton.setVisible(has_attach)
+
+    @Slot()
+    def _saveAttachment(self):
+        action = self.sender()
+        number = action.data()
+        attachment = list(self.pymessage.iter_attachments())[number]
+
+        dest = Path(QStandardPaths.writableLocation(QStandardPaths.DownloadLocation))
+        if not dest.is_dir():
+            dest = Path.home()
+
+        dest, _ = QFileDialog.getSaveFileName(
+            self, self.tr('Save attachment'),
+            str(dest.joinpath(attachment.get_filename())),
+        )
+        if not dest:
+            return
+
+        with open(dest, 'wb') as fp:
+            fp.write(attachment.get_payload())
 
     def eventFilter(self, obj, ev):
         if ev.type() == ev.MouseButtonPress:
