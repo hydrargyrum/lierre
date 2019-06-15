@@ -32,6 +32,8 @@ class Window(Ui_MainWindow, QMainWindow):
         self.actionCfgMail.triggered.connect(self.openOptions)
         self.actionCompose.triggered.connect(self.tabWidget.addCompose)
 
+        self.setWindowIcon(get_icon('lierre'))
+
     @Slot()
     def _tabChanged(self):
         tab_title = self.tabWidget.currentWidget().windowTitle()
@@ -61,3 +63,20 @@ class Window(Ui_MainWindow, QMainWindow):
         CONFIG.setdefault('ui', 'window', {})['maximized'] = self.isMaximized()
         super(Window, self).closeEvent(ev)
 
+
+def get_icon(name):
+    def add_icon_search_path(path):
+        current = QIcon.themeSearchPaths()
+        if path not in current:
+            current.append(path)
+            QIcon.setThemeSearchPaths(current)
+
+    # default search path doesn't seem to include XDG_DATA_HOME
+    for path in xbd.load_data_paths('icons'):
+        add_icon_search_path(path)
+
+    # XDG will hardcode /usr* without ever considering virtualenvs
+    # sys.prefix may refer to the virtualenv, so let's look there too
+    add_icon_search_path(os.path.join(sys.prefix, 'share', 'icons'))
+
+    return QIcon.fromTheme(name)
