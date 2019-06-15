@@ -106,9 +106,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             url = html.unescape(html_url)
             return '<a href="{0}">{0}</a>'.format(url)
 
-        uri_chars = "][(),'!*$_a-z@.A-Z:0-9/~;?+&=%#-"
-        last_char = "a-zA-Z0-9/+=#"  # TODO last char of uri should preferably be one of those
-        line_html = re.sub('https?://[%s]+' % uri_chars, to_link, line_html)
+        line_html = LINK_RE.sub(to_link, line_html)
 
         # TODO handle multiline (can't be done in this function)
         return line_html
@@ -139,7 +137,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
                     full_html.append('<summary>Quote</summary>\n')
 
                 for sub in item.content:
-                    _populate_rec(sub)
+                    _populate_rec_webengine(sub)
 
                 if item.level:
                     full_html.append('</details>\n')
@@ -410,3 +408,35 @@ class TagsLabelWidget(QFrame):
             y = self.ymargin * 2 + fm.height()
 
         return QSize(x, y)
+
+
+LINK_RE = re.compile(
+    r'''https?://
+    [][(),'!*$_a-z@.A-Z:0-9/~;?+&=%#-]+  # legal chars in a URL
+    [a-zA-Z0-9/+=#]+  # but we prefer URLs end with those rather than one of the above chars
+    ''', re.VERBOSE,
+)
+
+
+def test_link_parse():
+    assert LINK_RE.findall('''
+        http://foo.bar
+        http://foo.bar/
+        http://foo.bar/42
+        http://foo.bar/42.
+        http://foo.bar/42.html
+        <http://foo.bar/42.html>
+        [markdown](http://foo.bar/42.html)
+        http://foo.bar/42%25.html
+        http://qu:ux@foo.bar/~grault/42.html;param?k=k&v=v+v#yes=
+    ''') == '''
+        http://foo.bar
+        http://foo.bar/
+        http://foo.bar/42
+        http://foo.bar/42
+        http://foo.bar/42.html
+        http://foo.bar/42.html
+        http://foo.bar/42.html
+        http://foo.bar/42%25.html
+        http://qu:ux@foo.bar/~grault/42.html;param?k=k&v=v+v#yes=
+    '''.split()
