@@ -63,6 +63,9 @@ class Parser:
         return self.ret
 
     def _dump_buf(self):
+        if not self.buf:
+            return
+
         b = Block()
         b.level = self.buf[-1].level
         b.content = self.buf
