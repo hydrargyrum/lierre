@@ -57,6 +57,7 @@ class ThreadWidget(QWidget, Ui_Form):
         self.messagesTree.expandAll()
 
         self.messagesView.setThread(thread_id)
+        self.messagesView.resumeDraft.connect(self.triggeredResumeDraft)
         self.messagesTree.messageActivated.connect(self.messagesView.showMessage)
         self.messagesTree.messagesSelectionChanged.connect(self.messagesView.selectMessageChanged)
         self.messagesTree.messagesSelectionChanged.connect(self.messagesView.scrollToSelected)
@@ -196,6 +197,7 @@ class ThreadWidget(QWidget, Ui_Form):
 
     triggeredReply = Signal(str, bool)
     triggeredForward = Signal(str)
+    triggeredResumeDraft = Signal(str)
 
     @Slot()
     def openTagEditor(self):
@@ -238,4 +240,3 @@ class ThreadWidget(QWidget, Ui_Form):
                     WATCHER.tagMailRemoved.emit(tag, msg.get_message_id())
                 for tag in to_add:
                     WATCHER.tagMailAdded.emit(tag, msg.get_message_id())
-

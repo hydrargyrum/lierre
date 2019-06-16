@@ -50,6 +50,7 @@ class TabWidget(QTabWidget):
     def addThread(self, tid):
         w = ThreadWidget(tid, parent=self)
         w.triggeredReply.connect(self.addReply)
+        w.triggeredResumeDraft.connect(self.addResumeDraft)
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
         return w
@@ -59,6 +60,15 @@ class TabWidget(QTabWidget):
         w = ComposeWidget(parent=self)
         w.sent.connect(self._closeCompose)
         w.setReply(mid, to_all)
+        idx = self._addTab(w)
+        self.setCurrentIndex(idx)
+        return w
+
+    @Slot(str)
+    def addResumeDraft(self, mid):
+        w = ComposeWidget(parent=self)
+        w.sent.connect(self._closeCompose)
+        w.setFromDraft(mid)
         idx = self._addTab(w)
         self.setCurrentIndex(idx)
         return w
@@ -123,4 +133,3 @@ class TabWidget(QTabWidget):
         self.someTabTitleChanged.emit()
 
     someTabTitleChanged = Signal()
-

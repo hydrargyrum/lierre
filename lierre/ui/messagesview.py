@@ -57,6 +57,9 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         self.toLabel.setText(message.get_header('To'))
         self.dateLabel.setText(short_datetime(message.get_date()))
 
+        self.resumeDraftButton.setVisible('draft' in set(message.get_tags()))
+        self.resumeDraftButton.clicked.connect(self.resumeDraft)
+
         idx = self.layout().indexOf(self.messageEdit)
         self.tags_widget = TagsLabelWidget(list(message.get_tags()), parent=self)
         self.layout().insertWidget(idx, self.tags_widget)
@@ -212,6 +215,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         return False
 
     toggle = Signal()
+    resumeDraft = Signal()
 
     @Slot()
     def on_actionChooseText_triggered(self):
@@ -312,6 +316,7 @@ class MessagesView(QWidget):
         for msg in message_list:
             if 'unread' in set(msg.get_tags()) or msg is message_list[-1]:
                 qmsg = PlainMessageWidget(msg, parent=self)
+                qmsg.resumeDraft.connect(self._resumeDraft)
             else:
                 qmsg = CollapsedMessageWidget(msg, parent=self)
 
@@ -336,6 +341,7 @@ class MessagesView(QWidget):
                 # new.toggle.connect(self._selectInTree)
             else:
                 new = PlainMessageWidget(message, parent=self)
+                new.resumeDraft.connect(self._resumeDraft)
             new.toggle.connect(self._toggleMessage)
             new.setLineWidth(qmsg.lineWidth())
             self.widgets[message.get_message_id()] = new
@@ -373,7 +379,13 @@ class MessagesView(QWidget):
         changeWidth(removed, 1)
         changeWidth(added, 2)
 
+    @Slot()
+    def _resumeDraft(self):
+        qmsg = self.sender()
+        self.resumeDraft.emit(qmsg.message_id)
+
     expanded = Signal(str)
+    resumeDraft = Signal(str)
 
 
 class TagsLabelWidget(QFrame):

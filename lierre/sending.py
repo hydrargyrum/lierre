@@ -1,7 +1,5 @@
 
 from email.message import EmailMessage
-from email.headerregistry import Address
-from email.utils import make_msgid
 import logging
 import mailbox
 from pathlib import Path
@@ -30,11 +28,6 @@ def get_identities():
 
 def send_email(identity, msg):
     assert isinstance(msg, EmailMessage)
-
-    # finish preparing EmailMessage
-    from_addr = Address(identity['name'], addr_spec=identity['email'])
-    msg['From'] = from_addr
-    msg['Message-ID'] = make_msgid(domain=from_addr.domain)
 
     # prepare to add to mailbox
     box = mailbox.Maildir(get_db_path())

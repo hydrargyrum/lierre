@@ -125,6 +125,16 @@
          </spacer>
         </item>
         <item>
+         <widget class="QToolButton" name="resumeDraftButton">
+          <property name="toolTip">
+           <string>Resume draft</string>
+          </property>
+          <property name="icon">
+           <iconset theme="document-open"/>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QToolButton" name="attachmentsButton">
           <property name="icon">
            <iconset theme="mail-attachment"/>
