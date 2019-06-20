@@ -178,7 +178,7 @@ class ComposeWidget(QWidget, Ui_Form):
         self.sent.emit()
 
         with open_db_rw() as db:
-            if self.msg.get_header('In-reply-to'):
+            if self.msg.get('In-reply-to', ''):
                 replied_to = db.find_message(self.msg['In-reply-to'])
                 if replied_to:
                     replied_to.add_tag('replied', True)
