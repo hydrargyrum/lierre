@@ -76,7 +76,7 @@ def test_maildir_encodings():
 
 def get_box_path(box_name: str) -> Path:
     path = Path(get_db_path())
-    return path.joinpath(subpath_from_maildir_name(box_name))
+    return path.joinpath(subpath_to_maildir_name(box_name))
 
 
 def box_path_from_msg(msg_path) -> Path:
@@ -145,11 +145,14 @@ def move_to_mailbox(src_path, target_box_path) -> Path:
 
 
 def change_flags(src_path, to_add=None, to_remove=None):
+    if ':2,' not in src_path.name:
+        raise NotImplementedError()
+
     to_add = set(to_add or [])
     to_remove = set(to_remove or [])
     src_path = Path(src_path)
 
-    name, _, flags = src_path.name.partition(',')
+    name, _, flags = src_path.name.rpartition(',')
     flags = set(flags)
     flags |= to_add
     flags -= to_remove
