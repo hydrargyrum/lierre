@@ -10,7 +10,7 @@ from PyQt5.QtCore import (
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget
 from lierre.utils.db_ops import open_db
-from lierre.utils.box_ops import list_folders, move_to_mailbox
+from lierre.utils.maildir_ops import MaildirPP
 from lierre.utils.date import short_datetime
 from lierre.utils.addresses import get_sender
 
@@ -38,9 +38,11 @@ class FoldersModel(BasicTreeModel):
         self.refresh()
 
     def refresh(self):
+        root = MaildirPP()
+
         tree = {}
         objs = {}
-        for folder in sorted(list_folders()):
+        for folder in sorted(root.list_folders()):
             if folder.parts:
                 objs[folder.parts] = {
                     'key': folder.parts,
@@ -87,6 +89,8 @@ class FoldersModel(BasicTreeModel):
         return ['text/x-lierre-messages']
 
     def dropMimeData(self, mime, action, row, column, parent_qidx):
+        root = MaildirPP()
+
         data = bytes(mime.data('text/x-lierre-messages')).decode('ascii')
         if not data:
             return False
@@ -104,7 +108,7 @@ class FoldersModel(BasicTreeModel):
 
         folder = qidx.data(self.FolderObjectRole)
         for msg_path in paths:
-            move_to_mailbox(Path(msg_path), folder.path)
+            root.move_message(msg_path, folder)
             self.messageMoved.emit()
 
         return True
