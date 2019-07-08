@@ -3,16 +3,16 @@ from logging import getLogger
 from pathlib import Path
 
 from PyQt5.QtCore import QTimer, pyqtSlot as Slot, QThread
-from lierre.utils.db_ops import open_db_rw, get_db_path
-from lierre.utils.box_ops import (
-    move_to_mailbox, get_box_path, subpath_to_maildir_name,
-)
+from lierre.utils.db_ops import open_db_rw
+from lierre.utils.maildir_ops import MaildirPP
 from lierre.change_watcher import WATCHER
 
 from ..fetchers.base import Plugin, Job
 
 
 LOGGER = getLogger(__name__)
+
+TAG_DELETED = 'deleted'
 
 
 class TrashingPlugin(Plugin):
@@ -51,7 +51,7 @@ class TrashingPlugin(Plugin):
     # trash messages directly if tags are set by UI
     @Slot(str, str)
     def tagMailAdded(self, tag, msg_id):
-        if tag != 'deleted':
+        if tag != TAG_DELETED:
             return
 
         processor = self.build_processor()
@@ -63,7 +63,7 @@ class TrashingPlugin(Plugin):
 
     @Slot(str, str)
     def tagMailRemoved(self, tag, msg_id):
-        if tag != 'deleted':
+        if tag != TAG_DELETED:
             return
 
         processor = self.build_processor()
@@ -128,32 +128,37 @@ class SearchTrashableThread(QThread):
 class TrashFolderProcessor:
     def __init__(self, box_name='Trash'):
         self.trash_box_name = box_name
+        self.root = MaildirPP()
+        self.trash_folder = self.root.try_get_folder([self.trash_box_name])
 
     def find_messages_to_delete(self, db):
         # FIXME quoting?
-        qstr = 'tag:deleted and not folder:%s' % subpath_to_maildir_name(self.trash_box_name)
+        qstr = 'tag:%s and not folder:%s' % (TAG_DELETED, self.trash_folder.encoded_name)
         q = db.create_query(qstr)
         return q.search_messages()
 
     def find_messages_to_undelete(self, db):
         # FIXME quoting?
-        qstr = 'not tag:deleted and folder:%s' % subpath_to_maildir_name(self.trash_box_name)
+        qstr = 'not tag:%s and folder:%s' % (TAG_DELETED, self.trash_folder.encoded_name)
         q = db.create_query(qstr)
         return q.search_messages()
 
-    def delete_message(self, db, msg_path):
-        trash_path = get_box_path(self.trash_box_name)
-        LOGGER.debug('trashing %r to %r', msg_path, trash_path)
-        move_to_mailbox(msg_path, trash_path)
+    def delete_message(self, db, msg_path: Path) -> None:
+        LOGGER.debug('trashing %r to %r', msg_path, self.trash_folder.path)
+        new_path = self.root.move_message(msg_path, self.trash_folder)
+        db.add_message(str(new_path))
+        db.remove_message(str(msg_path))
 
-    def expunge_message(self, db, msg_path):
+    def expunge_message(self, db, msg_path: Path) -> None:
         LOGGER.error('expunging %r', msg_path)
         msg_path.unlink()
         db.remove_message(db.find_message(str(msg_path)))
 
-    def undelete_message(self, db, msg_path):
+    def undelete_message(self, db, msg_path: Path) -> None:
         LOGGER.error('untrashing %r to inbox', msg_path)
-        move_to_mailbox(msg_path, get_db_path())
+        new_path = self.root.move_message(msg_path, self.root.get_root())
+        db.add_message(str(new_path))
+        db.remove_message(str(msg_path))
 
 
 class TrashFlagProcessor:
