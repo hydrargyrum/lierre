@@ -2,7 +2,7 @@
 import os.path
 import sys
 
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QProgressBar
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot as Slot
 import xdg.BaseDirectory as xbd
@@ -32,6 +32,9 @@ class Window(Ui_MainWindow, QMainWindow):
         self.actionCfgMail.triggered.connect(self.openOptions)
         self.actionCompose.triggered.connect(self.tabWidget.addCompose)
 
+        self.fetchProgress = QProgressBar()
+        self.statusbar.addPermanentWidget(self.fetchProgress)
+
         self.setWindowIcon(get_icon('lierre'))
 
     @Slot()
@@ -43,10 +46,17 @@ class Window(Ui_MainWindow, QMainWindow):
     def _startRefresh(self):
         self.fetcher = Fetcher()
         self.fetcher.finished.connect(self._finishedRefresh)
+
+        self.fetchProgress.show()
+        self.fetchProgress.setRange(0, 0)
+        self.actionRefresh.setEnabled(False)
+
         self.fetcher.start()
 
     @Slot()
     def _finishedRefresh(self):
+        self.actionRefresh.setEnabled(True)
+        self.fetchProgress.hide()
         self.fetcher = None
 
     @Slot()

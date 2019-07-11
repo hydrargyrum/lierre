@@ -1,6 +1,5 @@
 
 import logging
-import subprocess
 
 from PyQt5.QtCore import (
     QObject, pyqtSignal as Signal, pyqtSlot as Slot,
@@ -20,8 +19,27 @@ class Fetcher(QObject):
         self.queue = []
 
     def start(self):
+        self.queue = []
+
         for plugin in plugin_manager.PLUGINS['fetchers'].iter_enabled_plugins().values():
             self.queue.append(plugin.create_job())
+
+        self.queue.append(CommandJob('notmuch new'))
+
+        for plugin in plugin_manager.PLUGINS['filters'].iter_enabled_plugins().values():
+            self.queue.append(plugin.create_job())
+
+        self._start_job(self.queue.pop(0))
+
+    def start_only(self, fetcher_name):
+        self.queue = []
+
+        for plugin_name, plugin in plugin_manager.PLUGINS['fetchers'].iter_enabled_plugins().items():
+            if plugin_name == fetcher_name:
+                self.queue.append(plugin.create_job())
+                break
+        else:
+            return
 
         self.queue.append(CommandJob('notmuch new'))
 
@@ -33,12 +51,12 @@ class Fetcher(QObject):
     def _start_job(self, job):
         if not job.parent():
             job.setParent(self)
-        job.finished.connect(self.jobFinished)
+        job.finished.connect(self._job_finished)
         job.finished.connect(job.deleteLater)
         job.start()
 
     @Slot()
-    def jobFinished(self):
+    def _job_finished(self):
         if self.queue:
             job = self.queue.pop(0)
             self._start_job(job)
