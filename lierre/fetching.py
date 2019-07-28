@@ -31,12 +31,12 @@ class Fetcher(QObject):
 
         self._start_job(self.queue.pop(0))
 
-    def start_only(self, fetcher_name):
+    def start_only(self, fetcher_name, **kwargs):
         self.queue = []
 
         for plugin_name, plugin in plugin_manager.PLUGINS['fetchers'].iter_enabled_plugins().items():
             if plugin_name == fetcher_name:
-                self.queue.append(plugin.create_job())
+                self.queue.append(plugin.create_job(**kwargs))
                 break
         else:
             return
