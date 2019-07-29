@@ -24,7 +24,7 @@ class Fetcher(QObject):
         for plugin in plugin_manager.PLUGINS['fetchers'].iter_enabled_plugins().values():
             self.queue.append(plugin.create_job())
 
-        self.queue.append(CommandJob('notmuch new'))
+        self.queue.append(CommandJob(['notmuch', 'new']))
 
         for plugin in plugin_manager.PLUGINS['filters'].iter_enabled_plugins().values():
             self.queue.append(plugin.create_job())
@@ -41,7 +41,7 @@ class Fetcher(QObject):
         else:
             return
 
-        self.queue.append(CommandJob('notmuch new'))
+        self.queue.append(CommandJob(['notmuch', 'new']))
 
         for plugin in plugin_manager.PLUGINS['filters'].iter_enabled_plugins().values():
             self.queue.append(plugin.create_job())
