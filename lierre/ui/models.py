@@ -566,11 +566,15 @@ class ThreadListModel(BasicListModel):
         self.query_text = None
         WATCHER.globalRefresh.connect(self.refresh, Qt.QueuedConnection)
         WATCHER.mailAdded.connect(self.refresh, Qt.QueuedConnection)
+        WATCHER.tagMailAdded.connect(self.refreshOneMail, Qt.QueuedConnection)
+        WATCHER.tagMailRemoved.connect(self.refreshOneMail, Qt.QueuedConnection)
 
     def setQuery(self, db, query_text):
         self.query_text = query_text
         objs = self._build_objs(db)
         self._setObjs(objs)
+        # TODO: generalise this "indexes" mechanism to other models?
+        self.indexes = {obj['id']: n for n, obj in enumerate(objs)}
 
     def _build_objs(self, db):
         query = db.create_query(self.query_text)
@@ -639,6 +643,27 @@ class ThreadListModel(BasicListModel):
         with open_db() as db:
             objs = self._build_objs(db)
         self._updateObjs(objs)
+        self.indexes = {obj['id']: n for n, obj in enumerate(objs)}
+
+    @Slot(str, str)
+    def refreshOneMail(self, _, msgid):
+        with open_db() as db:
+            thread = next(iter(db.create_query(f'id:{msgid}').search_threads()))
+            tid = thread.get_thread_id()
+
+            try:
+                row = self.indexes[tid]
+            except KeyError:
+                return
+
+            new_obj = self._thread_to_dict(thread)
+
+        self.objs[row].clear()
+        self.objs[row].update(new_obj)
+
+        qidx1 = self.index(row, 0)
+        qidx2 = qidx1.siblingAtColumn(self.columnCount() - 1)
+        self.dataChanged.emit(qidx1, qidx2, [])
 
     def _sort_key(self, d):
         return (-d['last_update'], d['id'])
