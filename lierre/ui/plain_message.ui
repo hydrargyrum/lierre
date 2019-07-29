@@ -183,6 +183,19 @@
     <string>Display as HTML</string>
    </property>
   </action>
+  <action name="actionChooseHTMLSource">
+   <property name="text">
+    <string>Display HTML source</string>
+   </property>
+  </action>
+  <action name="actionChooseSource">
+   <property name="text">
+    <string>Display source</string>
+   </property>
+   <property name="toolTip">
+    <string>Display message source</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

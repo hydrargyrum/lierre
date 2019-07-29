@@ -49,6 +49,8 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         tool_menu = QMenu()
         tool_menu.addAction(self.actionChooseText)
         tool_menu.addAction(self.actionChooseHTML)
+        tool_menu.addAction(self.actionChooseHTMLSource)
+        tool_menu.addAction(self.actionChooseSource)
         self.toolButton.setMenu(tool_menu)
 
         self.message_id = message.get_message_id()
@@ -77,6 +79,16 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             self.unread_timer.setSingleShot(True)
             self.unread_timer.timeout.connect(self._mark_read)
 
+        self.actionChooseText.setData('plain')
+        self.actionChooseHTML.setData('html')
+        self.actionChooseHTMLSource.setData('html_source')
+        self.actionChooseSource.setData('source')
+
+        self.actionChooseText.triggered.connect(self._chooseFormat)
+        self.actionChooseSource.triggered.connect(self._chooseFormat)
+        self.actionChooseHTML.triggered.connect(self._chooseFormat)
+        self.actionChooseHTMLSource.triggered.connect(self._chooseFormat)
+
         WATCHER.tagMailAdded.connect(self._addedTag, Qt.QueuedConnection)
         WATCHER.tagMailRemoved.connect(self._removedTag, Qt.QueuedConnection)
 
@@ -85,8 +97,33 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             self._populate_body_plain()
         elif self.display_format == 'html':
             self._populate_body_html()
+        elif self.display_format == 'source':
+            self._populate_body_source()
+        elif self.display_format == 'html_source':
+            self._populate_body_html_source()
         else:
             assert False
+
+    def _populate_body_source(self):
+        with open(self.message_filename, 'rb') as fp:
+            body = fp.read()
+
+        try:
+            body = body.decode('utf-8')
+        except UnicodeError:
+            body = body.decode('iso8859-1')
+
+        self.messageEdit.setMessage(self.pymessage)
+        self.messageEdit.setPlainText(body)
+
+    def _populate_body_html_source(self):
+        body = self.pymessage.get_body(('html',))
+        if body is None:
+            return
+
+        body = body.get_content()
+        self.messageEdit.setMessage(self.pymessage)
+        self.messageEdit.setPlainText(body)
 
     def _populate_body_html(self):
         body = self.pymessage.get_body(('html',))
@@ -218,12 +255,8 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
     resumeDraft = Signal()
 
     @Slot()
-    def on_actionChooseText_triggered(self):
-        self.display_format = 'plain'
-        self._populate_body()
-
-    def on_actionChooseHTML_triggered(self):
-        self.display_format = 'html'
+    def _chooseFormat(self):
+        self.display_format = self.sender().data()
         self._populate_body()
 
     def paintEvent(self, ev):
