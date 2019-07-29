@@ -41,12 +41,13 @@ class TrashingPlugin(Plugin):
 
     def set_config(self, config):
         self.config = config
+        self.config.setdefault('dry_run', False)
 
     def get_config(self):
         return self.config
 
     def create_job(self):
-        return SearchTrashableJob(self.build_processor())
+        return SearchTrashableJob(self.build_processor(), dry_run=self.config['dry_run'])
 
     # trash messages directly if tags are set by UI
     @Slot(str, str)
@@ -59,7 +60,8 @@ class TrashingPlugin(Plugin):
             for msg_path in db.find_message(msg_id).get_filenames():
                 msg_path = Path(msg_path)
                 LOGGER.info('deleting message %r with path %r', msg_id, msg_path)
-                processor.delete_message(db, msg_path)
+                if not self.config['dry_run']:
+                    processor.delete_message(db, msg_path)
 
     @Slot(str, str)
     def tagMailRemoved(self, tag, msg_id):
@@ -71,12 +73,15 @@ class TrashingPlugin(Plugin):
             for msg_path in db.find_message(msg_id).get_filenames():
                 msg_path = Path(msg_path)
                 LOGGER.info('undeleting message %r with path %r', msg_id, msg_path)
-                processor.undelete_message(db, msg_path)
+                if not self.config['dry_run']:
+                    processor.undelete_message(db, msg_path)
 
     # trash messages periodically if they are set by notmuch or while app is not run
     @Slot()
     def periodic_sync_deleted(self):
-        self.periodic_thread = SearchTrashableThread(self.build_processor())
+        self.periodic_thread = SearchTrashableThread(
+            self.build_processor(), dry_run=self.config['dry_run']
+        )
         self.periodic_thread.finished.connect(self.timer.start)
         self.timer.stop()
         self.periodic_thread.start()
@@ -91,12 +96,13 @@ class TrashingPlugin(Plugin):
 
 
 class SearchTrashableJob(Job):
-    def __init__(self, processor, *args, **kwargs):
+    def __init__(self, processor, *args, dry_run=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.processor = processor
+        self.dry_run = dry_run
 
     def start(self):
-        self.job = SearchTrashableThread(self.processor)
+        self.job = SearchTrashableThread(self.processor, dry_run=self.dry_run)
         self.job.finished.connect(self._finished)
         self.job.start()
 
@@ -106,9 +112,10 @@ class SearchTrashableJob(Job):
 
 
 class SearchTrashableThread(QThread):
-    def __init__(self, processor, *args, **kwargs):
+    def __init__(self, processor, *args, dry_run=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.processor = processor
+        self.dry_run = dry_run
 
     def run(self):
         with open_db_rw() as db:
@@ -116,13 +123,15 @@ class SearchTrashableThread(QThread):
                 for msg_path in msg.get_filenames():
                     msg_path = Path(msg_path)
                     LOGGER.info('deleting message %r with path %r', msg.get_message_id(), msg_path)
-                    self.processor.delete_message(db, msg_path)
+                    if not self.dry_run:
+                        self.processor.delete_message(db, msg_path)
 
             for msg in self.processor.find_messages_to_undelete(db):
                 for msg_path in msg.get_filenames():
                     msg_path = Path(msg_path)
                     LOGGER.info('undeleting message %r with path %r', msg.get_message_id(), msg_path)
-                    self.processor.undelete_message(db, msg_path)
+                    if not self.dry_run:
+                        self.processor.undelete_message(db, msg_path)
 
 
 class TrashFolderProcessor:
