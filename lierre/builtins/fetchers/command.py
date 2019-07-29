@@ -1,6 +1,5 @@
 
-from subprocess import check_output
-from threading import Thread
+from logging import getLogger
 
 from PyQt5.QtWidgets import (
     QWidget, QFormLayout, QLabel, QLineEdit,
@@ -8,6 +7,9 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QProcess
 
 from .base import Plugin, Job
+
+
+LOGGER = getLogger(__name__)
 
 
 class CommandForm(QWidget):
@@ -41,13 +43,17 @@ class CommandJob(Job):
     def __init__(self, cmd):
         super(CommandJob, self).__init__()
         self.cmd = cmd
+        if isinstance(self.cmd, str):
+            self.cmd = ['sh', '-c', self.cmd]
 
     def start(self):
         self.proc = QProcess(self)
         self.proc.setProcessChannelMode(QProcess.ForwardedChannels)
         self.proc.setInputChannelMode(QProcess.ForwardedInputChannel)
-        self.proc.start('sh', ['-c', self.cmd])
         self.proc.finished.connect(self.finished)
+
+        LOGGER.debug('will invoke %s', self.cmd)
+        self.proc.start(self.cmd[0], self.cmd[1:])
 
 
 class CommandPlugin(Plugin):
