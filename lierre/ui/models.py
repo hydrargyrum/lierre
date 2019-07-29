@@ -355,6 +355,7 @@ def tag_to_colors(tag):
     ancestors = [tag[:match.start()] for match in re.finditer('/', tag)]
     ancestors.append(tag)
     ancestors.reverse()
+    ancestors.append('*')
 
     bg = None
     for ancestor in ancestors:
