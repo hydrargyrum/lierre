@@ -1,7 +1,12 @@
 
 import email.policy
 import logging
-from subprocess import Popen, PIPE, STDOUT
+
+from PyQt5.QtCore import QByteArray
+from PyQt5.QtWidgets import QWidget
+from lierre.builtins.fetchers.base import Job
+from lierre.builtins.fetchers.command import ControllingProcess
+from lierre.ui.ui_loader import load_ui_class
 
 from .base import Plugin
 
@@ -9,23 +14,48 @@ from .base import Plugin
 LOGGER = logging.getLogger(__name__)
 
 
+Ui_Form = load_ui_class('msmtp', 'Form', 'lierre.builtins.senders')
+
+
+class Widget(Ui_Form, QWidget):
+    def __init__(self, plugin):
+        super().__init__()
+        self.plugin = plugin
+
+        self.setupUi(self)
+        self.cfgEdit.setText(self.plugin.config.get('config_file', ''))
+
+    def update_config(self):
+        self.plugin.config['config_file'] = self.cfgEdit.text()
+
+
+class MSmtpJob(Job):
+    def __init__(self, plugin, msg):
+        super().__init__()
+        self.plugin = plugin
+        self.msg = msg
+
+    def run(self):
+        LOGGER.info('sending mail %r with msmtp', self.msg['Message-ID'])
+
+        self.proc = ControllingProcess(self)
+
+        conf = self.plugin.config.get('config_file', '').strip()
+
+        cmd = ['msmtp', '--read-envelope-from', '--read-recipients']
+        if conf:
+            cmd += ['-C', conf]
+
+        self.proc.start(cmd[0], cmd[1:])
+        self.proc.finished.connect(self.finished)
+
+        raw = self.msg.as_bytes(policy=email.policy.default)
+        self.proc.write(QByteArray(raw))
+
+
 class MSmtpPlugin(Plugin):
     def send(self, msg):
-        cmd = ['msmtp', '--read-envelope-from', '--read-recipients']
-
-        raw = msg.as_bytes(policy=email.policy.default)
-
-        LOGGER.info('sending mail %r with msmtp', msg['Message-ID'])
-
-        proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        outs, _ = proc.communicate(raw)
-
-        if proc.returncode == 0:
-            LOGGER.info('successfully sent with msmtp')
-        else:
-            LOGGER.error('msmtp exited with code %r', proc.returncode)
-            LOGGER.error('msmtp output: %s', outs.decode('utf-8', errors='replace'))
-            raise Exception('msmtp exited with code %r' % proc.returncode)
+        return MSmtpJob(self, msg)
 
     def set_config(self, config):
         self.config = config
@@ -38,3 +68,6 @@ class MSmtpPlugin(Plugin):
 
     def disable(self):
         pass
+
+    def build_config_form(self):
+        return Widget(self)
