@@ -649,7 +649,9 @@ class ThreadListModel(BasicListModel):
     @Slot(str, str)
     def refreshOneMail(self, _, msgid):
         with open_db() as db:
-            thread = next(iter(db.create_query(f'id:{msgid}').search_threads()))
+            query = db.create_query(f'id:{msgid}')
+            query.set_omit_excluded(query.EXCLUDE.FALSE)
+            thread = next(iter(query.search_threads()))
             tid = thread.get_thread_id()
 
             try:
