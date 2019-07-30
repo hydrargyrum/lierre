@@ -2,7 +2,7 @@
 from logging import getLogger
 from pathlib import Path
 
-from PyQt5.QtCore import QTimer, pyqtSlot as Slot, QThread
+from PyQt5.QtCore import QTimer, pyqtSlot as Slot, QThread, Qt
 from lierre.utils.db_ops import open_db_rw
 from lierre.utils.maildir_ops import MaildirPP
 from lierre.change_watcher import WATCHER
@@ -22,8 +22,8 @@ class TrashingPlugin(Plugin):
         self.periodic_thread = None
 
     def enable(self):
-        WATCHER.tagMailAdded.connect(self.tagMailAdded)
-        WATCHER.tagMailRemoved.connect(self.tagMailRemoved)
+        WATCHER.tagMailAdded.connect(self.tagMailAdded, Qt.QueuedConnection)
+        WATCHER.tagMailRemoved.connect(self.tagMailRemoved, Qt.QueuedConnection)
 
         self.timer = QTimer(parent=self)
         self.timer.setSingleShot(True)
