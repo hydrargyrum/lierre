@@ -15,19 +15,21 @@ LOGGER = logging.getLogger(__name__)
 
 
 class IdlerThread(QThread):
-    def __init__(self, config, password):
+    def __init__(self, config):
         super(IdlerThread, self).__init__()
 
+        self.config = config
         self.host = config['host']
         self.login = config['login']
-        self.password = password
         self.folder = config.get('folder', 'INBOX')
 
         self.to_stop = False
 
     def run(self):
         self.connection = imaplib2.IMAP4_SSL(self.host)
-        self.connection.login(self.login, self.password)
+
+        password = subprocess.check_output(self.config['passcmd'], shell=True, encoding='utf-8').strip()
+        self.connection.login(self.login, password)
         # TODO handle login failure
 
         while not self.to_stop:
@@ -73,8 +75,7 @@ class IdlePlugin(Plugin):
         # TODO handle configuration
         # TODO watch multiple folders
         # TODO watch multiple hosts
-        password = subprocess.check_output(self.config['passcmd'], shell=True).decode('utf-8').strip()
-        self.idler = IdlerThread(self.config, password)
+        self.idler = IdlerThread(self.config)
         self.idler.activity.connect(self._start_fetcher)
         self.idler.start()
 
