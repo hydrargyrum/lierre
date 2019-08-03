@@ -8,6 +8,7 @@ from PyQt5.QtCore import (
 )
 from lierre.builtins.fetchers.base import Plugin
 from lierre.change_watcher import WATCHER
+from lierre.credentials import get_credential
 from lierre.fetching import Fetcher
 
 
@@ -28,7 +29,11 @@ class IdlerThread(QThread):
     def run(self):
         self.connection = imaplib2.IMAP4_SSL(self.host)
 
-        password = subprocess.check_output(self.config['passcmd'], shell=True, encoding='utf-8').strip()
+        if self.config.get('credential'):
+            password = get_credential(self.config['credential'])
+        else:
+            password = subprocess.check_output(self.config['passcmd'], shell=True, encoding='utf-8').strip()
+
         self.connection.login(self.login, password)
         # TODO handle login failure
 
