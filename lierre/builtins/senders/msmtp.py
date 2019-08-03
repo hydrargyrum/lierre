@@ -1,12 +1,12 @@
 
 import email.policy
 import logging
+import sys
 
-from PyQt5.QtCore import QByteArray
 from PyQt5.QtWidgets import QWidget
-from lierre.builtins.fetchers.base import Job
-from lierre.builtins.fetchers.command import ControllingProcess
 from lierre.ui.ui_loader import load_ui_class
+from lierre.credentials import get_credential
+from pexpect import spawn, EOF
 
 from .base import Plugin
 
@@ -29,33 +29,37 @@ class Widget(Ui_Form, QWidget):
         self.plugin.config['config_file'] = self.cfgEdit.text()
 
 
-class MSmtpJob(Job):
-    def __init__(self, plugin, msg):
-        super().__init__()
-        self.plugin = plugin
-        self.msg = msg
-
-    def run(self):
-        LOGGER.info('sending mail %r with msmtp', self.msg['Message-ID'])
-
-        self.proc = ControllingProcess(self)
-
-        conf = self.plugin.config.get('config_file', '').strip()
+class MSmtpPlugin(Plugin):
+    def send(self, msg):
+        conf = self.config.get('config_file', '').strip()
 
         cmd = ['msmtp', '--read-envelope-from', '--read-recipients']
         if conf:
             cmd += ['-C', conf]
 
-        self.proc.start(cmd[0], cmd[1:])
-        self.proc.finished.connect(self.finished)
+        # - msmtp reads headers on stdin to find identity
+        # - then it reads its configuration and might ask password on tty
+        #   (use credentials in that case)
+        # - then it reads the message body on stdin
 
-        raw = self.msg.as_bytes(policy=email.policy.default)
-        self.proc.write(QByteArray(raw))
+        policy = email.policy.default
+        raw_b = msg.as_bytes(policy=policy)
+        raw = raw_b.decode('ascii')
+        headers_s, sep, body_s = raw.partition(policy.linesep * 2)
 
+        pe = spawn(cmd[0], args=cmd[1:], encoding='utf-8')
+        pe.logfile_read = sys.stdout
 
-class MSmtpPlugin(Plugin):
-    def send(self, msg):
-        return MSmtpJob(self, msg)
+        pe.send(headers_s + sep)
+
+        event = pe.expect([r'password for \S+ at \S+:', EOF])
+        if event == 0:
+            pe.sendline(get_credential(self.config['credential']))
+
+        pe.send(body_s)
+        pe.sendeof()
+        pe.expect(EOF)
+        pe.close()
 
     def set_config(self, config):
         self.config = config
