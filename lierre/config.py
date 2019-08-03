@@ -15,6 +15,10 @@ def read_config():
         CONFIG.clear()
         CONFIG.update(yaml.safe_load(fd))
 
+    from . import credentials
+
+    credentials.load()
+
 
 def write_config():
     path = Path(xbd.save_config_path('lierre')).joinpath('config')
