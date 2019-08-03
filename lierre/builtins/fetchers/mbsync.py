@@ -1,13 +1,15 @@
 
 from logging import getLogger
+import sys
 
 from PyQt5.QtWidgets import (
     QWidget, QFormLayout, QLabel, QLineEdit,
 )
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QThread, pyqtSlot as Slot
+from pexpect import spawn, EOF
+from lierre.credentials import get_credential
 
-from .base import Plugin
-from .command import CommandJob
+from .base import Plugin, Job
 
 
 LOGGER = getLogger(__name__)
@@ -27,17 +29,49 @@ class CommandForm(QWidget):
         self.plugin.config['command'] = self.editor.text()
 
 
-class SavingProcess(QProcess):
-    def __init__(self, *args, **kwargs):
-        super(SavingProcess, self).__init__(*args, **kwargs)
-        self.proc.setProcessChannelMode(QProcess.MergedChannels)
-        self.proc.setInputChannelMode(QProcess.ForwardedInputChannel)
+class Thread(QThread):
+    def __init__(self, callable):
+        super().__init__()
+        self.callable = callable
+
+    def run(self):
+        self.result = -1
+        self.result = self.callable()
 
 
-class ControllingProcess(QProcess):
-    def __init__(self, *args, **kwargs):
-        super(ControllingProcess, self).__init__(*args, **kwargs)
-        self.proc.setInputChannelMode(QProcess.ManagedInputChannel)
+class ThreadRunnerJob(Job):
+    def __init__(self, callable):
+        super().__init__()
+        self.thread = Thread(callable)
+        self.thread.finished.connect(self._finishedThread)
+
+    @Slot()
+    def _finishedThread(self):
+        self.finished.emit(self.thread.result)
+
+    def start(self):
+        self.thread.start()
+
+
+class MbsyncRunnable:
+    def __init__(self, cmd, config):
+        self.cmd = cmd
+        self.config = config
+
+    def __call__(self):
+        pe = spawn(self.cmd[0], args=self.cmd[1:], encoding='utf-8')
+        pe.logfile_read = sys.stdout
+
+        event = pe.expect([r'Password \([^)]+\):', EOF])
+        if event == 0:
+            pe.sendline(get_credential(self.config.get('credential')))
+            pe.expect(EOF)
+
+        pe.wait()
+        pe.close()
+        if pe.signalstatus:
+            return pe.signalstatus + 128
+        return pe.exitstatus
 
 
 class MbsyncPlugin(Plugin):
@@ -73,4 +107,4 @@ class MbsyncPlugin(Plugin):
                 LOGGER.warning('specific folder-sync was requested, but no channel is configured, performing global sync')
             cmd += ['-a']
 
-        return CommandJob(cmd)
+        return ThreadRunnerJob(MbsyncRunnable(cmd, self.config))
