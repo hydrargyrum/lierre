@@ -5,7 +5,7 @@ import sys
 
 from PyQt5.QtWidgets import QWidget
 from lierre.ui.ui_loader import load_ui_class
-from lierre.credentials import get_credential
+from lierre.credentials import get_credential, list_credentials
 from pexpect import spawn, EOF
 
 from .base import Plugin
@@ -23,10 +23,25 @@ class Widget(Ui_Form, QWidget):
         self.plugin = plugin
 
         self.setupUi(self)
+
         self.cfgEdit.setText(self.plugin.config.get('config_file', ''))
+
+        self.credentialBox.addItem('<do not use credential>')
+        for cred in list_credentials():
+            self.credentialBox.addItem(cred)
+        credential = self.plugin.config.get('credential')
+        if credential:
+            self.credentialBox.setCurrentText(credential)
+        else:
+            self.credentialBox.setCurrentIndex(0)
 
     def update_config(self):
         self.plugin.config['config_file'] = self.cfgEdit.text()
+
+        if self.credentialBox.currentIndex() == 0:
+            self.plugin.config['credential'] = ''
+        else:
+            self.plugin.config['credential'] = self.credentialBox.currentText()
 
 
 class MSmtpPlugin(Plugin):
