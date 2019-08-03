@@ -1,13 +1,14 @@
 
 from logging import getLogger
+import os
+import re
 import sys
 
-from PyQt5.QtWidgets import (
-    QWidget, QFormLayout, QLabel, QLineEdit,
-)
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QThread, pyqtSlot as Slot
 from pexpect import spawn, EOF
-from lierre.credentials import get_credential
+from lierre.credentials import get_credential, list_credentials
+from lierre.ui.ui_loader import load_ui_class
 
 from .base import Plugin, Job
 
@@ -15,18 +16,70 @@ from .base import Plugin, Job
 LOGGER = getLogger(__name__)
 
 
-class CommandForm(QWidget):
+Ui_Form = load_ui_class('mbsync', 'Form', 'lierre.builtins.fetchers')
+
+
+def list_channels(path):
+    if not path:
+        path = os.path.expanduser('~/.mbsyncrc')
+
+    chan_re = re.compile(r'Channel (\S+)')
+
+    try:
+        with open(path, 'r') as fp:
+            for line in fp:
+                line = line.rstrip()
+                m = chan_re.fullmatch(line)
+                if m:
+                    yield m[1]
+    except IOError:
+        pass
+
+
+class Widget(Ui_Form, QWidget):
     def __init__(self, plugin):
-        super(CommandForm, self).__init__()
+        super().__init__()
         self.plugin = plugin
 
-        layout = QFormLayout()
-        self.setLayout(layout)
-        self.editor = QLineEdit(self.plugin.config.get('command', ''))
-        layout.addRow(QLabel(self.tr('Command')), self.editor)
+        self.setupUi(self)
+
+        self.cfgEdit.textChanged.connect(self._update_channels)
+        self.cfgEdit.setText(self.plugin.config.get('config_file', ''))
+
+        channel = self.plugin.config.get('channel')
+        if channel:
+            self.channelBox.setCurrentText(channel)
+        else:
+            self.channelBox.setCurrentIndex(0)
+
+        self.credentialBox.addItem('<do not use credential>')
+        for cred in list_credentials():
+            self.credentialBox.addItem(cred)
+        credential = self.plugin.config.get('credential')
+        if credential:
+            self.credentialBox.setCurrentText(credential)
+        else:
+            self.credentialBox.setCurrentIndex(0)
+
+    @Slot()
+    def _update_channels(self):
+        self.channelBox.clear()
+        self.channelBox.addItem(self.tr('<All channels>'))
+        for channel in list_channels(self.cfgEdit.text()):
+            self.channelBox.addItem(channel)
 
     def update_config(self):
-        self.plugin.config['command'] = self.editor.text()
+        self.plugin.config['config_file'] = self.cfgEdit.text()
+
+        if self.channelBox.currentIndex() == 0:
+            self.plugin.config['channel'] = ''
+        else:
+            self.plugin.config['channel'] = self.channelBox.currentText()
+
+        if self.credentialBox.currentIndex() == 0:
+            self.plugin.config['credential'] = ''
+        else:
+            self.plugin.config['credential'] = self.credentialBox.currentText()
 
 
 class Thread(QThread):
@@ -86,7 +139,7 @@ class MbsyncPlugin(Plugin):
         self.config = config
 
     def build_config_form(self):
-        return CommandForm(self)
+        return Widget(self)
 
     def create_job(self, **kwargs):
         cmd = ['mbsync']

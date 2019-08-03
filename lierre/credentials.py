@@ -26,3 +26,7 @@ def load():
 
 def get_credential(name):
     return CREDS[name]
+
+
+def list_credentials():
+    return list(CREDS.keys())
