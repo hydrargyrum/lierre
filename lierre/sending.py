@@ -42,6 +42,7 @@ def send_email(identity, msg):
 
     LOGGER.info('sent message saved to %r', msg_path)
     with open_db_rw() as db:
-        db.add_message(str(msg_path))
+        nmsg, status = db.add_message(str(msg_path))
+        nmsg.add_tag('sent', sync_maildir_flags=True)
 
     WATCHER.mailAdded.emit(msg['Message-ID'][1:-1])
