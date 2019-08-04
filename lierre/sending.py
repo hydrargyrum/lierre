@@ -31,8 +31,7 @@ def send_email(identity, msg):
 
     # prepare to add to mailbox
     box = MaildirPP()
-    folder = box.try_get_folder([CONFIG.get('sent_folder', default='Sent')])
-    box.create_folder(folder)
+    folder = box.get_root()
 
     # really send
     plugin = PLUGINS['senders'][identity['sender_plugin']]
