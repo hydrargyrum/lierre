@@ -13,6 +13,7 @@ class Application(QApplication):
         self.setApplicationDisplayName(self.tr('Lierre'))
         self.setApplicationName('Lierre')
         self.setApplicationVersion(__version__)
+        self.setDesktopFileName('lierre.desktop')
 
         read_config()
         plugin_manager.init()
