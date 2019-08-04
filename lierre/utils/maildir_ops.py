@@ -195,3 +195,12 @@ class MaildirPP:
         for sub in folder.path.joinpath('tmp').iterdir():
             if sub.is_file() and now - sub.stat().st_mtime > TMP_CLEAN_THRESHOLD_SECS:
                 sub.unlink()
+
+    def folder_from_msg(self, msg_path: Path) -> Folder:
+        folder_path = msg_path.parent.parent
+
+        if folder_path == self.path:
+            return self.get_root()
+        else:
+            enc_parts = folder_path.name.lstrip('.').split('.')
+            return Folder(folder_path, tuple(decode_maildir_name(part) for part in enc_parts))
