@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from . import __version__
 from . import plugin_manager
 from .config import read_config, write_config
-from .error_logs import install as install_log_handler
+from .ui.error_logs import install as install_log_handler
 
 
 class Application(QApplication):
