@@ -9,6 +9,7 @@ from PyQt5.QtCore import QThread, pyqtSlot as Slot
 from pexpect import spawn, EOF
 from lierre.credentials import get_credential, list_credentials
 from lierre.ui.ui_loader import load_ui_class
+from lierre.utils.pexpect import env_c_lang, expect_get_obj, close_expect
 
 from .base import Plugin, Job
 
@@ -106,25 +107,63 @@ class ThreadRunnerJob(Job):
         self.thread.start()
 
 
+class CommandError(Exception):
+    pass
+
+
 class MbsyncRunnable:
+    PASSWORD_PATTERN = re.compile(r'Password \([^)]+\):')
+    ERROR_PATTERN = re.compile(r'IMAP command .* returned an error: (.*)\n')
+    PROGRESS_PATTERN = re.compile(
+        r'C: \d+/\d+  B: \d+/\d+'
+        r'  M: \+\d+/\d+ \*\d+/\d+ #\d+/\d+'
+        r'  S: \+\d+/\d+ \*\d+/\d+ #\d+/\d+\r'
+    )
+
     def __init__(self, cmd, config):
         self.cmd = cmd
         self.config = config
 
     def __call__(self):
-        pe = spawn(self.cmd[0], args=self.cmd[1:], encoding='utf-8')
-        pe.logfile_read = sys.stdout
+        pe = spawn(self.cmd[0], args=self.cmd[1:], encoding='utf-8', env=env_c_lang())
+        try:
+            pe.logfile_read = sys.stdout
 
-        event = pe.expect([r'Password \([^)]+\):', EOF])
-        if event == 0:
-            pe.sendline(get_credential(self.config.get('credential')))
-            pe.expect(EOF)
+            patt_list = [
+                self.PASSWORD_PATTERN, self.PROGRESS_PATTERN,
+                self.ERROR_PATTERN, EOF,
+            ]
 
-        pe.wait()
-        pe.close()
-        if pe.signalstatus:
-            return pe.signalstatus + 128
-        return pe.exitstatus
+            # mbsync displays periodic progress info
+            # but it might display initial progress info before asking password
+            event = expect_get_obj(pe, patt_list)
+            while event is self.PROGRESS_PATTERN:
+                # we prefer TIMEOUT to be reserved for strictly no-activity cases
+                # so we expect periodic progress updates even if we don't care
+                event = expect_get_obj(pe, patt_list)
+
+            if event is self.PASSWORD_PATTERN:
+                pe.sendline(get_credential(self.config.get('credential')))
+
+                event = expect_get_obj(pe, patt_list)
+                while event is self.PROGRESS_PATTERN:
+                    event = expect_get_obj(pe, patt_list)
+
+            if event is self.PASSWORD_PATTERN:
+                LOGGER.error('mbsync unexpectedly asked password again, exiting')
+                raise CommandError('unexpected password')
+
+            if event is self.ERROR_PATTERN:
+                LOGGER.error('mbsync encountered an error: %s', pe.match[1])
+                raise CommandError(pe.match[1])
+
+            pe.close()
+
+            if pe.signalstatus:
+                return pe.signalstatus + 128
+            return pe.exitstatus
+        finally:
+            close_expect(pe)
 
 
 class MbsyncPlugin(Plugin):
