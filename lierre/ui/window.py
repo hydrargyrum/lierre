@@ -11,6 +11,7 @@ from lierre.config import CONFIG
 
 from .ui_loader import load_ui_class
 from .options_conf import OptionsConf
+from .error_logs import ErrorIndicator
 
 
 Ui_MainWindow = load_ui_class('window', 'Ui_MainWindow')
@@ -34,6 +35,7 @@ class Window(Ui_MainWindow, QMainWindow):
 
         self.fetchProgress = QProgressBar()
         self.statusbar.addPermanentWidget(self.fetchProgress)
+        self.statusbar.addPermanentWidget(ErrorIndicator())
 
         self.setWindowIcon(get_icon('lierre'))
 
