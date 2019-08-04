@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
 from PyQt5.QtCore import QObject, pyqtSignal as Signal
 

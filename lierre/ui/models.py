@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
 from copy import deepcopy
 from hashlib import sha1

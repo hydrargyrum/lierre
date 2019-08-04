@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
 from base64 import b64encode, b64decode
 from collections import namedtuple

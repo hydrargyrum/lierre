@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
 from datetime import datetime
 from logging import getLogger, Handler, ERROR
