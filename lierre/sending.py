@@ -18,12 +18,29 @@ def is_identity_valid(d):
     return d.get('name') and d.get('email') and d.get('sender_plugin')
 
 
+class Identity:
+    def __init__(self, *, key=None, name=None, address=None, sender_plugin=None):
+        self.key = key
+        self.name = name
+        self.address = address
+        self.sender_plugin = sender_plugin
+
+    def is_valid(self):
+        return self.name and self.address and self.sender_plugin and self.key
+
+
 def get_identities():
-    identities = CONFIG.get('identities', default={})
-    return {key: idt for key, idt in identities.items() if is_identity_valid(idt)}
+    identities_cfg = CONFIG.get('identities', default={})
+    identities = {
+        key: Identity(key=key, name=v['name'], sender_plugin=v['sender_plugin'], address=v['email'])
+        for key, v in identities_cfg.items()
+    }
+    return {
+        key: idt for key, idt in identities.items() if idt.is_valid()
+    }
+
 
 # TODO signature, reply-to address
-# TODO use a class for storing identity and validating
 
 
 def send_email(identity, msg):
@@ -34,7 +51,7 @@ def send_email(identity, msg):
     folder = box.get_root()
 
     # really send
-    plugin = PLUGINS['senders'][identity['sender_plugin']]
+    plugin = PLUGINS['senders'][identity.sender_plugin]
     plugin.send(msg)
 
     # save in folder

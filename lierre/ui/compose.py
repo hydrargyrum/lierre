@@ -46,7 +46,7 @@ class ComposeWidget(QWidget, Ui_Form):
 
         if identities:
             for key, idt in identities.items():
-                txt = '%s <%s>' % (idt['name'], idt['email'])
+                txt = '%s <%s>' % (idt.name, idt.address)
                 self.fromCombo.addItem(txt, key)
         else:
             self.fromCombo.addItem(self.tr('Please configure identities'))
@@ -161,7 +161,7 @@ class ComposeWidget(QWidget, Ui_Form):
         self._setHeader('Cc', [Address(name, addr_spec=addr) for name, addr in getaddresses([self.ccEdit.text()])])
         self._setHeader('Bcc', [Address(name, addr_spec=addr) for name, addr in getaddresses([self.bccEdit.text()])])
 
-        from_addr = Address(idt['name'], addr_spec=idt['email'])
+        from_addr = Address(idt.name, addr_spec=idt.address)
         self._setHeader('From', from_addr)
         self._setHeader('Message-ID', make_msgid(domain=from_addr.domain))
 
