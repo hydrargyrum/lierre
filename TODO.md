@@ -14,8 +14,6 @@
 * tags as tree instead of list
     * folding stored in ui preferences
 
-* tags color config can be patterns
-
 # mail view
 
 * collapse quoting in message view
@@ -29,12 +27,7 @@
 
 * refresh views when notmuch has been run
 
-* IDLE imap to detect changes
-    * use a plugin?
-
-* asynchronous fetching
-* progress info
-* lazy fetching, only fetch changed mailboxes
+* fetching progress info
 
 # composing mail
 
@@ -91,3 +84,6 @@
 * supports creating a notmuch db
 * autodetect exising mbsync/msmtp/etc. configs and propose to auto-load plugins for them
 
+# speed
+
+* solve locks and UI locks when editing tags etc.
