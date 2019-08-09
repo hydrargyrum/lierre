@@ -36,3 +36,16 @@ def rfc2047_parse(name):
             name = quopri.decodestring(blob).decode(charset)
 
     return name
+
+
+NOREPLY = re.compile(
+    r'\bno[_.-]?reply\b.*@|'
+    r'\bdo[_.t]?not[_.-]?reply\b.*@|'
+    r'@noreply\b',
+    re.I
+)
+
+
+def is_noreply(addr):
+    """Determines whether an address is a noreply one."""
+    return bool(NOREPLY.search(addr))
