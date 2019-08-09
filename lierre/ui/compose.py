@@ -128,8 +128,8 @@ class ComposeWidget(QWidget, Ui_Form):
         self.subjectEdit.setText(self.msg['Subject'])
 
         self.rcptEdit.set_recipients(
-            to=getaddresses([self.msg.get('To', '')]),
-            cc=getaddresses([self.msg.get('Cc', '')])
+            to=getaddresses(self.msg.get_all('To', [])),
+            cc=getaddresses(self.msg.get_all('Cc', []))
         )
 
         body = pymessage.get_body(('plain',))
