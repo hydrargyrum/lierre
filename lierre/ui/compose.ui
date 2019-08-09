@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>345</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,78 +29,44 @@
      <item row="0" column="1">
       <widget class="QComboBox" name="fromCombo"/>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="toLabel">
-       <property name="text">
-        <string>&amp;To</string>
+     <item row="1" column="0" colspan="2">
+      <widget class="RecipientsEditor" name="rcptEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <property name="buddy">
-        <cstring>toEdit</cstring>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
        </property>
+       <property name="verticalScrollMode">
+        <enum>QAbstractItemView::ScrollPerPixel</enum>
+       </property>
+       <property name="horizontalScrollMode">
+        <enum>QAbstractItemView::ScrollPerPixel</enum>
+       </property>
+       <property name="rowCount">
+        <number>1</number>
+       </property>
+       <property name="columnCount">
+        <number>2</number>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <row/>
+       <column/>
+       <column/>
       </widget>
-     </item>
-     <item row="1" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QLineEdit" name="toEdit">
-         <property name="placeholderText">
-          <string>To</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="ccToggle">
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <property name="arrowType">
-          <enum>Qt::DownArrow</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="ccLabel">
-       <property name="text">
-        <string>&amp;CC</string>
-       </property>
-       <property name="buddy">
-        <cstring>ccEdit</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="ccEdit">
-       <property name="placeholderText">
-        <string>CC</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="bccLabel">
-       <property name="text">
-        <string>&amp;BCC</string>
-       </property>
-       <property name="buddy">
-        <cstring>bccEdit</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="bccEdit">
-       <property name="placeholderText">
-        <string>BCC</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
       <widget class="QLabel" name="subjectLabel">
        <property name="text">
         <string>&amp;Subject</string>
@@ -110,7 +76,7 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="2" column="1">
       <widget class="QLineEdit" name="subjectEdit">
        <property name="placeholderText">
         <string>Enter subject</string>
@@ -166,80 +132,19 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>RecipientsEditor</class>
+   <extends>QTableWidget</extends>
+   <header>lierre.ui.recipients_editor</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>fromCombo</tabstop>
-  <tabstop>toEdit</tabstop>
-  <tabstop>ccToggle</tabstop>
-  <tabstop>ccEdit</tabstop>
-  <tabstop>bccEdit</tabstop>
+  <tabstop>rcptEdit</tabstop>
   <tabstop>subjectEdit</tabstop>
   <tabstop>messageEdit</tabstop>
  </tabstops>
  <resources/>
- <connections>
-  <connection>
-   <sender>ccToggle</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>ccEdit</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>378</x>
-     <y>52</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>103</x>
-     <y>85</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>ccToggle</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>ccLabel</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>375</x>
-     <y>45</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>26</x>
-     <y>77</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>ccToggle</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>bccEdit</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>381</x>
-     <y>46</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>344</x>
-     <y>108</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>ccToggle</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>bccLabel</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>380</x>
-     <y>59</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>24</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

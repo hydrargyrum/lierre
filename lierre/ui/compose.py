@@ -30,7 +30,6 @@ class ComposeWidget(QWidget, Ui_Form):
 
         self._updateIdentities()
 
-        self.ccToggle.setChecked(False)
 
         self.addAction(self.actionSaveDraft)
         self.actionSaveDraft.triggered.connect(self._saveDraft)
@@ -97,9 +96,11 @@ class ComposeWidget(QWidget, Ui_Form):
                 self.msg[header] = info[header]
 
         self.subjectEdit.setText(info['Subject'])
-        self.toEdit.setText(info.get('To', ''))
-        self.ccEdit.setText(info.get('Cc', ''))
-        self.ccToggle.setChecked(bool(self.ccEdit.text()))
+
+        self.rcptEdit.set_recipients(
+            to=getaddresses([info.get('To', '')]),
+            cc=getaddresses([info.get('Cc', '')])
+        )
 
         with open_db() as db:
             msg = db.find_message(reply_to)
@@ -125,9 +126,11 @@ class ComposeWidget(QWidget, Ui_Form):
         self.draft_id = draft_id
 
         self.subjectEdit.setText(self.msg['Subject'])
-        self.toEdit.setText(self.msg.get('To', ''))
-        self.ccEdit.setText(self.msg.get('Cc', ''))
-        self.ccToggle.setChecked(bool(self.ccEdit.text()))
+
+        self.rcptEdit.set_recipients(
+            to=getaddresses([self.msg.get('To', '')]),
+            cc=getaddresses([self.msg.get('Cc', '')])
+        )
 
         body = pymessage.get_body(('plain',))
         if body is not None:
@@ -157,9 +160,9 @@ class ComposeWidget(QWidget, Ui_Form):
 
         self._setHeader('Date', localtime())
         self._setHeader('Subject', self.subjectEdit.text())
-        self._setHeader('To', [Address(name, addr_spec=addr) for name, addr in getaddresses([self.toEdit.text()])])
-        self._setHeader('Cc', [Address(name, addr_spec=addr) for name, addr in getaddresses([self.ccEdit.text()])])
-        self._setHeader('Bcc', [Address(name, addr_spec=addr) for name, addr in getaddresses([self.bccEdit.text()])])
+
+        for header, pairs in self.rcptEdit.get_recipients().items():
+            self._setHeader(header, [Address(name, addr_spec=addr) for name, addr in pairs])
 
         from_addr = Address(idt.name, addr_spec=idt.address)
         self._setHeader('From', from_addr)
