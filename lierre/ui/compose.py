@@ -5,7 +5,6 @@ from email.message import EmailMessage
 from email.headerregistry import Address
 from email.utils import localtime, getaddresses, make_msgid
 import json
-from mailbox import Maildir, MaildirMessage
 from pathlib import Path
 import re
 from subprocess import check_output
@@ -13,7 +12,8 @@ from subprocess import check_output
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QWidget
 from lierre.mailutils.parsequote import Parser, indent_recursive, to_text
-from lierre.utils.db_ops import open_db, open_db_rw, get_db_path
+from lierre.utils.db_ops import open_db, open_db_rw
+from lierre.utils.maildir_ops import MaildirPP
 from lierre.sending import get_identities, send_email
 from lierre.change_watcher import WATCHER
 
@@ -194,17 +194,13 @@ class ComposeWidget(QWidget, Ui_Form):
         if not idt:
             return
 
-        box = Maildir(get_db_path())
-        boxmsg = MaildirMessage(self.msg)
-        boxmsg.add_flag('D')
-
-        uniq = box.add(boxmsg)
-        msg_path = Path(get_db_path()).joinpath(box._lookup(uniq))
+        box = MaildirPP()
         with open_db_rw() as db:
-            msg, _ = db.add_message(str(msg_path))
-            msg.add_tag('draft', True)
+            msg_path = box.add_message(self.msg, box.get_root())
+            nmsg = db.add_message(str(msg_path))
+            nmsg.add_tag('draft', True)
 
-            old_draft, self.draft_id = self.draft_id, msg.get_message_id()
+            old_draft, self.draft_id = self.draft_id, nmsg.get_message_id()
             if old_draft:
                 old_msg = db.find_message(old_draft)
                 old_file = old_msg.get_filename()
