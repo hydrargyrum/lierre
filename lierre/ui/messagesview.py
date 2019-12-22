@@ -219,7 +219,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
         self.attachmentsButton.setMenu(QMenu(self.attachmentsButton))
         for n, attachment in enumerate(self.pymessage.iter_attachments()):
             has_attach = True
-            action = self.attachmentsButton.menu().addAction(attachment.get_filename())
+            action = self.attachmentsButton.menu().addAction(attachment.get_filename() or 'untitled.attachment')
             action.triggered.connect(self._saveAttachment)
             action.setData(n)
 
