@@ -20,4 +20,6 @@ For example, one can fetch new emails directly within the Lierre app without run
 Lierre is still under heavy development. See TODO.md for future features.
 Lierre is licensed under the WTFPL version 2.
 
+![Screenshot of messages list](2019-12-22-163338_1300x897_scrot.png)
+
 ![Screenshot of thread view](2019-12-22-153502_1093x651_scrot.png)
