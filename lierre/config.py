@@ -1,5 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
+from logging import getLogger
 import os
 from pathlib import Path
 
@@ -7,14 +8,19 @@ import xdg.BaseDirectory as xbd
 import ruamel.yaml as yaml
 
 
+LOGGER = getLogger(__name__)
+
+
 def read_config():
     path = Path(xbd.save_config_path('lierre')).joinpath('config')
     if not path.exists():
+        LOGGER.warning('cannot read config, file does not exist: %s', path)
         return
 
     with path.open() as fd:
         CONFIG.clear()
         CONFIG.update(yaml.safe_load(fd))
+    LOGGER.debug('read config: %s', path)
 
     from . import credentials
 
@@ -23,6 +29,7 @@ def read_config():
 
 def write_config():
     path = Path(xbd.save_config_path('lierre')).joinpath('config')
+    LOGGER.debug('writing config: %s', path)
     with path.open('w') as fd:
         yaml.dump(dict(CONFIG), fd, default_flow_style=False)
 
