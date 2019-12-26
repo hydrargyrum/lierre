@@ -36,10 +36,9 @@ class TabWidget(QTabWidget):
 
     def addThreads(self):
         w = ThreadsWidget(parent=self)
-        idx = self._addTab(w)
         w.threadActivated.connect(self.addThread)
         w.tagActivated.connect(self._addThreadsTag)
-        self.setCurrentIndex(idx)
+        self._addTab(w, focus=True)
         return w
 
     @Slot(str)
@@ -52,8 +51,7 @@ class TabWidget(QTabWidget):
         w = ThreadWidget(tid, parent=self)
         w.triggeredReply.connect(self.addReply)
         w.triggeredResumeDraft.connect(self.addResumeDraft)
-        idx = self._addTab(w)
-        self.setCurrentIndex(idx)
+        self._addTab(w, focus=True)
         return w
 
     @Slot(str, bool)
@@ -61,8 +59,7 @@ class TabWidget(QTabWidget):
         w = ComposeWidget(parent=self)
         w.sent.connect(self._closeCompose)
         w.setReply(mid, to_all)
-        idx = self._addTab(w)
-        self.setCurrentIndex(idx)
+        self._addTab(w, focus=True)
         return w
 
     @Slot(str)
@@ -70,16 +67,14 @@ class TabWidget(QTabWidget):
         w = ComposeWidget(parent=self)
         w.sent.connect(self._closeCompose)
         w.setFromDraft(mid)
-        idx = self._addTab(w)
-        self.setCurrentIndex(idx)
+        self._addTab(w, focus=True)
         return w
 
     @Slot()
     def addCompose(self):
         w = ComposeWidget(parent=self)
         w.sent.connect(self._closeCompose)
-        idx = self._addTab(w)
-        self.setCurrentIndex(idx)
+        self._addTab(w, focus=True)
         return w
 
     @Slot()
@@ -93,9 +88,11 @@ class TabWidget(QTabWidget):
     def addForward(self, mid):
         pass
 
-    def _addTab(self, widget):
+    def _addTab(self, widget, focus=False):
         idx = self.addTab(widget, widget.windowTitle())
         widget.windowTitleChanged.connect(self._tabTitleChanged)
+        if focus:
+            self.setCurrentIndex(idx)
         return idx
 
     @Slot(int)
