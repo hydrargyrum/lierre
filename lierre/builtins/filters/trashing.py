@@ -42,7 +42,7 @@ class TrashingPlugin(Plugin):
 
     def set_config(self, config):
         self.config = config
-        self.config.setdefault('dry_run', False)
+        self.config.setdefault('dry_run', True)
 
     def get_config(self):
         return self.config
