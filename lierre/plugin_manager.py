@@ -102,4 +102,4 @@ def init():
     init_plugins_from_config('filters')
     init_plugins_from_config('senders')
     init_plugins_from_config('misc')
-
+    init_plugins_from_config('addressbook')
