@@ -381,6 +381,9 @@ def _fg_from_bg_color(qcolor):
 
 
 class TagsListModel(BasicListModel):
+    UnreadRole = register_role()
+    TotalRole = register_role()
+
     columns = (
         ('Name', 'display_name'),
         ('Unread', 'unread_text'),
@@ -399,7 +402,8 @@ class TagsListModel(BasicListModel):
         return [
             {
                 'name': tag,
-                'unread': db.create_query('tag:%s AND tag:unread' % tag).count_threads(),
+                'unread': db.create_query('tag:%s AND tag:unread' % tag).count_messages(),
+                'total': db.create_query('tag:%s' % tag).count_messages(),
             }
             for tag in db.get_all_tags()
         ]
@@ -414,8 +418,7 @@ class TagsListModel(BasicListModel):
         return QVariant(item.get('display_name') or item['name'])
 
     def _get_unread_text(self, item):
-        text = str(item['unread']) if item['unread'] else ''
-        return QVariant(text)
+        return QVariant(f'{item["unread"]}/{item["total"]}')
 
     def data(self, qidx, role=Qt.DisplayRole):
         item = qidx.internalPointer()
@@ -430,6 +433,10 @@ class TagsListModel(BasicListModel):
             return QVariant(tag_to_colors(item['name'])[0])
         elif role == Qt.BackgroundRole:
             return QVariant(tag_to_colors(item['name'])[1])
+        elif role == self.UnreadRole:
+            return QVariant(item['unread'])
+        elif role == self.TotalRole:
+            return QVariant(item['total'])
 
         return QVariant()
 

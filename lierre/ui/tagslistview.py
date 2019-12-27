@@ -9,7 +9,7 @@ from PyQt5.QtCore import (
 class TagDelegate(QStyledItemDelegate):
     def initStyleOption(self, option, qidx):
         super(TagDelegate, self).initStyleOption(option, qidx)
-        if qidx.sibling(qidx.row(), 1).data():
+        if qidx.sibling(qidx.row(), 1).data(qidx.model().UnreadRole):
             option.font.setBold(True)
 
 
