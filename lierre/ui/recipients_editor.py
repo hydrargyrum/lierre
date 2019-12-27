@@ -1,12 +1,72 @@
 # this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
+from logging import getLogger
 import re
 
-from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QSize
+from PyQt5.QtCore import (
+    pyqtSlot as Slot, pyqtSignal as Signal, QSize, Qt, QRegExp,
+)
+from PyQt5.QtGui import (
+    QStandardItemModel, QStandardItem, QRegExpValidator,
+)
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHeaderView, QStyledItemDelegate,
-    QItemEditorFactory, QLineEdit, QComboBox,
+    QItemEditorFactory, QLineEdit, QComboBox, QCompleter,
 )
+from lierre.plugin_manager import PLUGINS
+
+
+LOGGER = getLogger(__name__)
+
+
+class RecipientCompleter(QCompleter):
+    def __init__(self, *, others, message, **kwargs):
+        super().__init__(**kwargs)
+        self.activated.connect(self.insertActivated)
+
+        self.others = others
+        self.message = message
+
+    def install_on(self, lineedit):
+        self.setWidget(lineedit)
+        self.setFilterMode(Qt.MatchContains)
+
+        lineedit.textEdited.connect(self.setCompletionPrefix)
+        lineedit.textEdited.connect(self.complete)
+
+    def getCompletions(self, s):
+        completions = []
+        for pname, plugin in PLUGINS['addressbook'].iter_enabled_plugins().items():
+            try:
+                results = plugin.search_contacts(
+                    s,
+                    others=self.others,
+                    message=self.message
+                )
+                completions.extend(results)
+            except Exception:
+                LOGGER.exception('plugin %r could not list completions', pname)
+        return completions
+
+    def update(self, s):
+        mdl = QStandardItemModel()
+
+        for name, addr in self.getCompletions(s):
+            mdl.appendRow(QStandardItem(f'{name} <{addr}>'))
+
+        self.setModel(mdl)
+
+    def splitPath(self, s):
+        # QCompleter is built around the idea its model has ALL the completions
+        # at hand, but we can't assume this.
+        # This method is called almost everytime so this is the best place
+        # to rebuilt the completion model as often as possible.
+        self.update(s)
+        return []
+
+    @Slot(str)
+    def insertActivated(self, s):
+        self.widget().setText(s)
 
 
 class TypeFactory(QItemEditorFactory):
@@ -28,6 +88,18 @@ class EditorFactory(QItemEditorFactory):
 
     def createEditor(self, type, parent):
         ret = QLineEdit(parent=parent)
+
+        pattern = r'\s*[^<\s]+@[^>\s]+\s*|.*<\S+@\S+>\s*'
+        validator = QRegExpValidator(QRegExp(pattern), parent=ret)
+        ret.setValidator(validator)
+
+        completer = RecipientCompleter(
+            parent=ret,
+            message=self.rcpts.msg,
+            others=self.rcpts.get_recipients(),
+        )
+        completer.install_on(ret)
+
         self.rcpts.editStarted.emit(ret)
         return ret
 
@@ -54,6 +126,11 @@ class RecipientsEditor(QTableWidget):
         self.itemChanged.connect(self._updateColumnCount)
 
         self.setItem(0, 0, QTableWidgetItem('To'))
+
+        self.msg = None
+
+    def set_message(self, msg):
+        self.msg = msg
 
     @Slot(QTableWidgetItem)
     def _updateColumnCount(self, qitem):

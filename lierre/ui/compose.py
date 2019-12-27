@@ -30,12 +30,13 @@ class ComposeWidget(QWidget, Ui_Form):
 
         self._updateIdentities()
 
-
         self.addAction(self.actionSaveDraft)
         self.actionSaveDraft.triggered.connect(self._saveDraft)
         self.draft_id = None
 
         self.msg = EmailMessage()
+
+        self.rcptEdit.set_message(self.msg)
 
     def _updateIdentities(self):
         identities = get_identities()
