@@ -1,1 +1,2 @@
 include lierre/ui/*.ui
+include lierre/builtins/*/*.ui
