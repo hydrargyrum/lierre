@@ -22,7 +22,9 @@ except ImportError:
 
 def get_thread_by_id(db, id):
     q = db.create_query('thread:%s' % id)
-    q.set_omit_excluded(q.EXCLUDE.FALSE)
+    if hasattr(q, 'set_omit_excluded'):
+        # FIXME remove condition when function is integrated in notmuch bindings
+        q.set_omit_excluded(q.EXCLUDE.FALSE)
 
     it = q.search_threads()
     thr = next(iter(it), None)
@@ -136,6 +138,10 @@ class ExcerptBuilder(QObject):
 
         if not self.queue:
             self.timer.stop()
+
+        if not hasattr(notmuch.Message, 'add_property'):
+            # FIXME remove condition when function is integrated in notmuch bindings
+            return
 
         with open(filename, 'rb') as fp:
             pymessage = email.message_from_binary_file(fp, policy=email.policy.default)

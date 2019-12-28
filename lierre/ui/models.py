@@ -658,7 +658,9 @@ class ThreadListModel(BasicListModel):
     def refreshOneMail(self, _, msgid):
         with open_db() as db:
             query = db.create_query(f'id:{msgid}')
-            query.set_omit_excluded(query.EXCLUDE.FALSE)
+            if hasattr(query, 'set_omit_excluded'):
+                # FIXME remove condition when function is integrated in notmuch bindings
+                query.set_omit_excluded(query.EXCLUDE.FALSE)
             thread = next(iter(query.search_threads()))
             tid = thread.get_thread_id()
 
