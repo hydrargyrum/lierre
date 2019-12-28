@@ -5,12 +5,14 @@ from email.message import EmailMessage
 from email.headerregistry import Address
 from email.utils import localtime, getaddresses, make_msgid
 import json
+from mimetypes import guess_type
 from pathlib import Path
 import re
 from subprocess import check_output
 
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QWidget, QFileDialog, QAction
 from lierre.mailutils.parsequote import Parser, indent_recursive, to_text
 from lierre.utils.db_ops import open_db, open_db_rw
 from lierre.utils.maildir_ops import MaildirPP
@@ -35,8 +37,15 @@ class ComposeWidget(QWidget, Ui_Form):
         self.draft_id = None
 
         self.msg = EmailMessage()
+        self.msg.set_content('')
 
         self.rcptEdit.set_message(self.msg)
+        self.attachmentList.hide()
+
+        action = QAction(self.tr('Attach file'), self)
+        action.setShortcut(QKeySequence('Alt+J'))
+        action.triggered.connect(self._choose_attachment)
+        self.addAction(action)
 
     def _updateIdentities(self):
         identities = get_identities()
@@ -138,6 +147,10 @@ class ComposeWidget(QWidget, Ui_Form):
             body = body.get_content()
             self.messageEdit.setPlainText(body)
 
+        for attachment in pymessage.iter_attachments():
+            self.attachmentsList.addItem(attachment.get_filename() or 'untitled.attachment')
+            self.attachmentList.show()
+
     @Slot()
     def on_sendButton_clicked(self):
         # prevent double-click, etc.
@@ -169,7 +182,12 @@ class ComposeWidget(QWidget, Ui_Form):
         self._setHeader('From', from_addr)
         self._setHeader('Message-ID', make_msgid(domain=from_addr.domain))
 
-        self.msg.set_content(self.messageEdit.toPlainText())
+        for part in self.msg.iter_parts():
+            if part.get_content_type() == 'text/plain':
+                part.set_content(self.messageEdit.toPlainText())
+                break
+        else:
+            self.msg.set_content(self.messageEdit.toPlainText())
 
         return idt
 
@@ -207,5 +225,31 @@ class ComposeWidget(QWidget, Ui_Form):
                 old_file = old_msg.get_filename()
                 Path(old_file).unlink()
                 db.remove_message(old_file)
+
+    @Slot()
+    def _choose_attachment(self):
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            self.tr('Select attachments'),
+        )
+        if not files:
+            return
+
+        self.attachmentList.show()
+        for path in files:
+            path = Path(path)
+
+            mime, _ = guess_type(path.name)
+            if not mime:
+                mime = 'application/octet-stream'
+            maintype, _, subtype = mime.partition('/')
+
+            self.msg.add_attachment(
+                path.read_bytes(),
+                maintype=maintype,
+                subtype=subtype,
+                filename=path.name,
+            )
+            self.attachmentList.addItem(path.name)
 
     sent = Signal()
