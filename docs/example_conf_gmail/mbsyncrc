@@ -1,0 +1,31 @@
+MaildirStore local_jdoe
+	SubFolders Maildir++
+	Inbox ~/Mail
+	#Trash [Gmail]/Corbeille
+
+##
+
+IMAPAccount imap_jdoe
+	Host imap.gmail.com
+	SSLType IMAPS
+	User jdoe@gmail.com
+    # the following line is useless if using lierre's "credential" system
+	# PassCmd "pass show gmail"
+
+##
+
+IMAPStore imap_jdoe
+	Account imap_jdoe
+
+##
+
+Channel jdoe
+	Master :imap_jdoe:
+	Slave :local_jdoe:
+	Patterns *
+	SyncState *
+	Sync Pull PushFlags
+	Create Slave
+	Remove Slave
+	Expunge Slave
+

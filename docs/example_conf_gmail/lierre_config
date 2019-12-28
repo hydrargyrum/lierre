@@ -1,0 +1,43 @@
+credentials:
+  gmail: pass show gmail
+identities:
+  jdoe:
+    email: jdoe@gmail.com
+    name: John Doe
+    sender_plugin: msmtp
+plugins:
+  fetchers: !!omap
+  - mbsync:
+      channel: jdoe
+      credential: gmail
+      ep_name: mbsync
+      name: mbsync
+  misc: !!omap
+  - tag_colors:
+      ep_name: tag_colors
+  - imapidle:
+      credential: gmail
+      ep_name: imapidle
+      fetcher_key: mbsync
+      host: imap.gmail.com
+      login: jdoe@gmail.com
+  senders: !!omap
+  - msmtp:
+      credential: gmail
+      ep_name: msmtp
+      name: msmtp
+ui:
+  tag_colors:
+    '*': '#dddddd'
+    attachment: '#ddd'
+    deleted: '#ccf'
+    draft: '#ccf'
+    flagged: '#ff0'
+    inbox: '#7f7'
+    killed: '#dddddd'
+    lists: '#ddd'
+    replied: '#ddd'
+    signed: '#ddd'
+    unread: '#cccccc'
+  window:
+    maximized: true
