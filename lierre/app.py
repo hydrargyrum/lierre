@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.wtfpl for details
 
-from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtCore import pyqtSlot as Slot, Qt
 from PyQt5.QtWidgets import QApplication
 
 from . import __version__
@@ -16,6 +16,7 @@ class Application(QApplication):
         self.setApplicationName('Lierre')
         self.setApplicationVersion(__version__)
         self.setDesktopFileName('lierre.desktop')
+        self.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
         read_config()
         install_log_handler()
