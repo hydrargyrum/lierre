@@ -243,7 +243,7 @@ class PlainMessageWidget(QFrame, PlainMessageUi_Frame):
             return
 
         with open(dest, 'wb') as fp:
-            fp.write(attachment.get_payload())
+            fp.write(attachment.get_content())
 
     def eventFilter(self, obj, ev):
         if ev.type() == ev.MouseButtonPress:
