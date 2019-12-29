@@ -573,6 +573,7 @@ class ThreadListModel(BasicListModel):
     def __init__(self, *args, **kwargs):
         super(ThreadListModel, self).__init__(*args, **kwargs)
         self.query_text = None
+        self.indexes = {}
         WATCHER.globalRefresh.connect(self.refresh, Qt.QueuedConnection)
         WATCHER.mailAdded.connect(self.refresh, Qt.QueuedConnection)
         WATCHER.tagMailAdded.connect(self.refreshOneMail, Qt.QueuedConnection)
