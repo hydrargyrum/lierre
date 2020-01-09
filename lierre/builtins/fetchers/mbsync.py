@@ -3,6 +3,7 @@
 from logging import getLogger
 import os
 import re
+from shutil import which
 import sys
 
 from PyQt5.QtWidgets import QWidget
@@ -171,6 +172,9 @@ class MbsyncPlugin(Plugin):
     def __init__(self):
         super(MbsyncPlugin, self).__init__()
         self.thread = None
+
+    def is_available(self):
+        return bool(which('mbsync'))
 
     def get_config(self):
         return self.config

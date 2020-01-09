@@ -4,6 +4,7 @@ import email.policy
 import logging
 import re
 import sys
+from shutil import which
 
 from PyQt5.QtWidgets import QWidget
 from lierre.ui.ui_loader import load_ui_class
@@ -142,3 +143,6 @@ class MSmtpPlugin(Plugin):
 
     def build_config_form(self):
         return Widget(self)
+
+    def is_available(self):
+        return bool(which('msmtp'))
