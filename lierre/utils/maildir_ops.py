@@ -66,11 +66,6 @@ def encode_maildir_name(s: str) -> str:
     return ret.decode('ascii')
 
 
-def test_maildir_encodings():
-    assert encode_maildir_name('Rés.umé') == 'R&AOk-s&AC4-um&AOk-'
-    assert 'Rés.umé' == decode_maildir_name('R&AOk-s&AC4-um&AOk-')
-
-
 def box_path_from_msg(msg_path: StrOrPath) -> Path:
     msg_path = Path(msg_path)
     return msg_path.parent.parent

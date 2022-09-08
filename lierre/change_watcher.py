@@ -27,19 +27,6 @@ def diff_sorted(aitems, bitems, *, key=None, reverse=False):
             yield (v, v)
 
 
-def test_diff_sorted():
-    assert list(diff_sorted(
-        ['b', 'c', 'e'],
-        ['a', 'c', 'd'],
-    )) == [
-        (None, 'a'),
-        ('b', None),
-        ('c', 'c'),
-        (None, 'd'),
-        ('e', None),
-    ]
-
-
 class ChangeWatcher(QObject):
     globalRefresh = Signal()
     tagMailAdded = Signal(str, str)
